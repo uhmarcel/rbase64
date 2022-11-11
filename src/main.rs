@@ -1,12 +1,10 @@
 use std::io;
 use std::fs;
 use std::io::Read;
+use clap::Parser;
 
 mod base64;
 
-use clap::Parser;
-
-/// Base64 encoding / decoding tool
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 struct Args {

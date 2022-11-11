@@ -21,7 +21,6 @@ pub fn encode(value: &str) -> String {
         }
     }
 
-
     if accumulator_bits != 0 {
         accumulator_value = accumulator_value << (6 - accumulator_bits);
         encoded.push(to_base64_char(accumulator_value));
@@ -37,7 +36,6 @@ pub fn decode(encoded: &str) -> String {
     let mut decoded = String::new();
     let mut accumulator_value = 0u8;
     let mut accumulator_bits = 0u8;
-
 
     for b64_char in encoded.chars() {
         if b64_char == '=' {

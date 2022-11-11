@@ -1,8 +1,15 @@
 [package]
 name = "rbase64"
-version = "1.0.0"
+version = "1.0.1"
 edition = "2021"
-authors = ["Marcel Riera"]
+description = "A simple base64 encoder / decoder CLI tool made in Rust"
+authors = ["Marcel Riera <marcel.riera@outlook.com>"]
+license = "MIT OR Apache-2.0"
+keywords = ["base64"]
+categories = ["command-line-utilities"]
+homepage = "https://github.com/uhmarcel/rbase64"
+repository = "https://github.com/uhmarcel/rbase64"
+readme = "README.md"
 
 [dependencies]
 clap = { version = "4.0", features = ["derive"] }

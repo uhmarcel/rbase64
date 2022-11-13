@@ -47,7 +47,7 @@ fn main() {
 }
 
 fn parse_input(file: Option<String>) -> String {
-    return match file {
+    match file {
         Some(path) => fs::read_to_string(path).expect("Unable to load file"),
         None => {
             let mut buffer: Vec<u8> = Vec::new();
@@ -56,5 +56,5 @@ fn parse_input(file: Option<String>) -> String {
                 .expect("Failed to read stdin");
             String::from_utf8(buffer).expect("Failed to parse stdin")
         }
-    };
+    }
 }

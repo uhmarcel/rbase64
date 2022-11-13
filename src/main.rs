@@ -26,9 +26,9 @@ fn main() {
     let input = parse_input(args.input.or(args.argument));
 
     let processed = if args.decode {
-        base64::decode(&input)
+        String::from_utf8(base64::decode(&input)).expect("Unable to parse utf8")
     } else {
-        base64::encode(&input)
+        base64::encode(&input.into_bytes())
     };
 
     match args.output {

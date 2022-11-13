@@ -1,10 +1,10 @@
 
-pub fn encode(value: &str) -> String {
+pub fn encode(value: &[u8]) -> String {
     let mut encoded = String::new();
-    let mut accumulator_value = 0;
-    let mut accumulator_bits = 0;
+    let mut accumulator_value = 0u8;
+    let mut accumulator_bits = 0u8;
 
-    for byte in value.bytes() {
+    for byte in value {
         let mut mask = 128u8;
 
         while mask > 0 {
@@ -32,8 +32,8 @@ pub fn encode(value: &str) -> String {
     return encoded;
 }
 
-pub fn decode(encoded: &str) -> String {
-    let mut decoded = String::new();
+pub fn decode(encoded: &str) -> Vec<u8> {
+    let mut decoded: Vec<u8> = Vec::new();
     let mut accumulator_value = 0u8;
     let mut accumulator_bits = 0u8;
 
@@ -51,7 +51,7 @@ pub fn decode(encoded: &str) -> String {
             accumulator_bits += 1;
 
             if accumulator_bits >= 8 {
-                decoded.push(accumulator_value as char);
+                decoded.push(accumulator_value);
                 accumulator_value = 0;
                 accumulator_bits = 0;
             }
@@ -70,8 +70,10 @@ fn to_base64_char(value: u8) -> char {
         char::from(('0' as u8) + (value - 52))
     } else if value < 63 {
         '+'
-    } else {
+    } else if value < 64 {
         '/'
+    } else {
+        panic!("Input byte is not in base 64 ({})", value)
     };
 }
 
@@ -84,8 +86,10 @@ fn to_byte(base64: char) -> u8 {
         (base64 as u8) - ('0' as u8) + 52
     } else if base64 == '+' {
         62
-    } else {
+    } else if base64 == '/' {
         63
+    } else {
+        panic!("Character '{}' is not part of the base64 spec ([a-z][A-Z][0-9]+/=)", base64)
     }
 }
 
@@ -95,27 +99,27 @@ mod tests {
 
     #[test]
     fn should_encode_following_base64_spec() {
-        assert_eq!(encode("Hello!"), "SGVsbG8h");
-        assert_eq!(encode("0123456789"), "MDEyMzQ1Njc4OQ==");
-        assert_eq!(encode("https://foo.bar/q?a=2&b=3#fr"), "aHR0cHM6Ly9mb28uYmFyL3E/YT0yJmI9MyNmcg==");
-        assert_eq!(encode("  "), "ICA=");
-        assert_eq!(encode(""), "");
+        assert_eq!(encode(b"Hello!"), "SGVsbG8h");
+        assert_eq!(encode(b"0123456789"), "MDEyMzQ1Njc4OQ==");
+        assert_eq!(encode(b"https://foo.bar/q?a=2&b=3#fr"), "aHR0cHM6Ly9mb28uYmFyL3E/YT0yJmI9MyNmcg==");
+        assert_eq!(encode(b"  "), "ICA=");
+        assert_eq!(encode(b""), "");
     }
 
     #[test]
     fn should_decode_following_base64_spec() {
-        assert_eq!(decode("SGVsbG8h"), "Hello!");
-        assert_eq!(decode("MDEyMzQ1Njc4OQ=="), "0123456789");
-        assert_eq!(decode("aHR0cHM6Ly9mb28uYmFyL3E/YT0yJmI9MyNmcg=="), "https://foo.bar/q?a=2&b=3#fr");
-        assert_eq!(decode("ICA="), "  ");
-        assert_eq!(decode(""), "");
+        assert_eq!(decode("SGVsbG8h"), b"Hello!");
+        assert_eq!(decode("MDEyMzQ1Njc4OQ=="), b"0123456789");
+        assert_eq!(decode("aHR0cHM6Ly9mb28uYmFyL3E/YT0yJmI9MyNmcg=="), b"https://foo.bar/q?a=2&b=3#fr");
+        assert_eq!(decode("ICA="), b"  ");
+        assert_eq!(decode(""), b"");
     }
 
     #[test]
     fn should_preserve_original_value() {
-        assert_eq!(decode(&encode("Hello!")), "Hello!");
-        assert_eq!(decode(&encode("Large msg...")), "Large msg...");
-        assert_eq!(decode(&encode("!@#$%^&*()_+")), "!@#$%^&*()_+")
+        assert_eq!(decode(&encode(b"Hello!")), b"Hello!");
+        assert_eq!(decode(&encode(b"Large msg...")), b"Large msg...");
+        assert_eq!(decode(&encode(b"!@#$%^&*()_+")), b"!@#$%^&*()_+")
     }
 
 }

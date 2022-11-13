@@ -3,6 +3,9 @@ on:
   push:
     branches:
       - main
+    tags:
+      - 'v*'
+  workflow_dispatch:
 
 name: CI
 

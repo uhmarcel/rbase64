@@ -17,4 +17,4 @@ clap = { version = "4.0", features = ["derive"] }
 [dev-dependencies]
 assert_cmd = "2.0"
 predicates = "2.1"
-chrono = "0.4.23"
+chrono = { version = "0.4.23", default-features = false, features = ["clock"] }

@@ -7,7 +7,7 @@ pub fn encode(value: &[u8]) -> String {
         let mut mask = 128u8;
 
         while mask > 0 {
-            let bit = if byte & mask > 0 { 1 } else { 0 };
+            let bit = u8::from(byte & mask > 0);
             accumulator_value = (accumulator_value << 1) + bit;
             accumulator_bits += 1;
 
@@ -16,19 +16,19 @@ pub fn encode(value: &[u8]) -> String {
                 accumulator_value = 0;
                 accumulator_bits = 0;
             }
-            mask = mask >> 1;
+            mask >>= 1;
         }
     }
 
     if accumulator_bits != 0 {
-        accumulator_value = accumulator_value << (6 - accumulator_bits);
+        accumulator_value <<= 6 - accumulator_bits;
         encoded.push(to_base64_char(accumulator_value));
     }
 
     while encoded.len() % 4 > 0 {
         encoded.push('=');
     }
-    return encoded;
+    encoded
 }
 
 pub fn decode(encoded: &str) -> Vec<u8> {
@@ -45,7 +45,7 @@ pub fn decode(encoded: &str) -> Vec<u8> {
         let mut mask = 32u8;
 
         while mask > 0 {
-            let bit = if value & mask > 0 { 1 } else { 0 };
+            let bit = u8::from(value & mask > 0);
             accumulator_value = (accumulator_value << 1) + bit;
             accumulator_bits += 1;
 
@@ -54,35 +54,35 @@ pub fn decode(encoded: &str) -> Vec<u8> {
                 accumulator_value = 0;
                 accumulator_bits = 0;
             }
-            mask = mask >> 1;
+            mask >>= 1;
         }
     }
-    return decoded;
+    decoded
 }
 
 fn to_base64_char(value: u8) -> char {
-    return if value < 26 {
-        char::from(('A' as u8) + value)
+    if value < 26 {
+        char::from(b'A' + value)
     } else if value < 52 {
-        char::from(('a' as u8) + (value - 26))
+        char::from(b'a' + (value - 26))
     } else if value < 62 {
-        char::from(('0' as u8) + (value - 52))
+        char::from(b'0' + (value - 52))
     } else if value < 63 {
         '+'
     } else if value < 64 {
         '/'
     } else {
         panic!("Input byte is not in base 64 ({})", value)
-    };
+    }
 }
 
 fn to_byte(base64: char) -> u8 {
-    return if base64 >= 'A' && base64 <= 'Z' {
-        (base64 as u8) - ('A' as u8)
-    } else if base64 >= 'a' && base64 <= 'z' {
-        (base64 as u8) - ('a' as u8) + 26
-    } else if base64 >= '0' && base64 <= '9' {
-        (base64 as u8) - ('0' as u8) + 52
+    if ('A'..='Z').contains(&base64) {
+        (base64 as u8) - b'A'
+    } else if ('a'..='z').contains(&base64) {
+        (base64 as u8) - b'a' + 26
+    } else if ('0'..='9').contains(&base64) {
+        (base64 as u8) - b'0' + 52
     } else if base64 == '+' {
         62
     } else if base64 == '/' {
@@ -92,7 +92,7 @@ fn to_byte(base64: char) -> u8 {
             "Character '{}' is not part of the base64 spec ([a-z][A-Z][0-9]+/=)",
             base64
         )
-    };
+    }
 }
 
 #[cfg(test)]

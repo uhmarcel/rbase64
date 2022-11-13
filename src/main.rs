@@ -1,14 +1,19 @@
-use std::io;
-use std::fs;
-use std::io::Read;
 use clap::Parser;
+use std::fs;
+use std::io;
+use std::io::Read;
 
 mod base64;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 struct Args {
-    #[arg(short, long, default_value_t = false, help = "Decode input (default: false)")]
+    #[arg(
+        short,
+        long,
+        default_value_t = false,
+        help = "Decode input (default: false)"
+    )]
     decode: bool,
 
     #[arg(short, long, help = "Input file (stdin if missing)")]
@@ -18,7 +23,7 @@ struct Args {
     output: Option<String>,
 
     #[arg(hide = true)]
-    argument: Option<String>
+    argument: Option<String>,
 }
 
 fn main() {
@@ -34,7 +39,7 @@ fn main() {
     match args.output {
         Some(path) => {
             fs::write(path, processed).expect("Failed to write output");
-        },
+        }
         None => {
             print!("{}", processed);
         }
@@ -43,13 +48,13 @@ fn main() {
 
 fn parse_input(file: Option<String>) -> String {
     return match file {
-        Some(path) => {
-            fs::read_to_string(path).expect("Unable to load file")
-        },
+        Some(path) => fs::read_to_string(path).expect("Unable to load file"),
         None => {
             let mut buffer: Vec<u8> = Vec::new();
-            io::stdin().read_to_end(&mut buffer).expect("Failed to read stdin");
+            io::stdin()
+                .read_to_end(&mut buffer)
+                .expect("Failed to read stdin");
             String::from_utf8(buffer).expect("Failed to parse stdin")
-        },
-    }
+        }
+    };
 }

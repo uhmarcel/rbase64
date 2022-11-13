@@ -1,7 +1,7 @@
 use assert_cmd::Command;
+use chrono::Utc;
 use predicates::prelude::*;
 use std::fs;
-use chrono::Utc;
 
 #[test]
 fn given_stdin_no_args_expect_encoded_string_in_stdout() {
@@ -32,7 +32,9 @@ fn given_invalid_stdin_and_decode_arg_expect_error() {
         .write_stdin("!Not a base64 string")
         .assert()
         .failure()
-        .stderr(predicate::str::contains("Character '!' is not part of the base64 spec"));
+        .stderr(predicate::str::contains(
+            "Character '!' is not part of the base64 spec",
+        ));
 }
 
 #[test]

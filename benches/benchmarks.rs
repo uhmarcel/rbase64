@@ -3,7 +3,7 @@ extern crate criterion;
 
 use criterion::{black_box, Bencher, BenchmarkId, Criterion, Throughput};
 use rand::{Rng, SeedableRng};
-use std::time::{Duration};
+use std::time::Duration;
 
 use rbase64;
 
@@ -13,7 +13,9 @@ const MB: usize = 1024 * 1024;
 const BYTE_SIZES: [usize; 8] = [3, 50, 100, 500, 3 * KB, 1 * MB, 2 * MB, 10 * MB];
 
 fn benchmark_of<F>(c: &mut Criterion, name: &str, f: F)
-    where F: Fn(&mut Bencher, &usize) {
+where
+    F: Fn(&mut Bencher, &usize),
+{
     let mut group = c.benchmark_group(name);
 
     for size in &BYTE_SIZES[..] {
@@ -30,13 +32,13 @@ fn decode_bench(b: &mut Bencher, &size: &usize) {
     let bytes = random_bytes(size * 3 / 4);
     let encoded = rbase64::encode(&bytes);
 
-    b.iter(|| black_box(rbase64::decode(&encoded)) );
+    b.iter(|| black_box(rbase64::decode(&encoded)));
 }
 
 fn encode_bench(b: &mut Bencher, &size: &usize) {
     let bytes = random_bytes(size);
 
-    b.iter(|| black_box(rbase64::encode(&bytes)) );
+    b.iter(|| black_box(rbase64::encode(&bytes)));
 }
 
 fn random_bytes(size: usize) -> Vec<u8> {

@@ -1,28 +1,24 @@
 pub fn encode(value: &[u8]) -> String {
     let mut encoded = String::with_capacity(value.len() * 4 / 3);
-    let mut accumulator_value = 0u8;
-    let mut accumulator_bits = 0u8;
+    let mut bytes = 0u32;
+    let mut size = 0u8;
 
     for byte in value {
-        let mut mask = 128u8;
+        bytes = (bytes << 8) + *byte as u32;
+        size += 8;
 
-        while mask > 0 {
-            let bit = u8::from(byte & mask > 0);
-            accumulator_value = (accumulator_value << 1) + bit;
-            accumulator_bits += 1;
+        while size >= 6 {
+            size -= 6;
 
-            if accumulator_bits >= 6 {
-                encoded.push(to_base64_char(accumulator_value));
-                accumulator_value = 0;
-                accumulator_bits = 0;
-            }
-            mask >>= 1;
+            let mask = 0x3f << size;
+            encoded.push(to_base64_char(((bytes & mask) >> size) as u8));
+            bytes = bytes & !mask;
         }
     }
 
-    if accumulator_bits != 0 {
-        accumulator_value <<= 6 - accumulator_bits;
-        encoded.push(to_base64_char(accumulator_value));
+    if size > 0 {
+        bytes <<= 6 - size;
+        encoded.push(to_base64_char(bytes as u8));
     }
 
     while encoded.len() % 4 > 0 {
@@ -104,7 +100,6 @@ mod tests {
         assert_eq!(encode(b"  "), "ICA=");
         assert_eq!(encode(b""), "");
         assert_eq!(encode(&0u32.to_ne_bytes()), "AAAAAA==");
-
     }
 
     #[test]

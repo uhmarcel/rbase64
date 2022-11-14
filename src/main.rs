@@ -3,7 +3,7 @@ use std::fs;
 use std::io;
 use std::io::Read;
 
-mod base64;
+use rbase64;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -31,9 +31,9 @@ fn main() {
     let input = parse_input(args.input.or(args.argument));
 
     let processed = if args.decode {
-        String::from_utf8(base64::decode(&input)).expect("Unable to parse utf8")
+        String::from_utf8(rbase64::decode(&input)).expect("Unable to parse utf8")
     } else {
-        base64::encode(&input.into_bytes())
+        rbase64::encode(&input.into_bytes())
     };
 
     match args.output {

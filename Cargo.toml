@@ -1,12 +1,12 @@
 [package]
 name = "rbase64"
-version = "1.1.0"
+version = "1.1.1"
 edition = "2021"
 description = "A simple base64 encoder / decoder CLI tool made in Rust"
 authors = ["Marcel Riera <marcel.riera@outlook.com>"]
 license = "MIT OR Apache-2.0"
 keywords = ["base64", "encode", "decode"]
-categories = ["command-line-utilities"]
+categories = ["encoding", "command-line-utilities"]
 homepage = "https://github.com/uhmarcel/rbase64"
 repository = "https://github.com/uhmarcel/rbase64"
 readme = "README.md"
@@ -18,3 +18,9 @@ clap = { version = "4.0", features = ["derive"] }
 assert_cmd = "2.0"
 predicates = "2.1"
 chrono = { version = "0.4.23", default-features = false, features = ["clock"] }
+criterion = "0.4.0"
+rand = { version = "0.8.5", features = ["small_rng"] }
+
+[[bench]]
+name = "benchmarks"
+harness = false

@@ -85,6 +85,7 @@ const fn construct_decode_map() -> [u8; 256] {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use rand::{Rng, SeedableRng};
 
     #[test]
     fn should_encode_following_base64_spec() {
@@ -113,9 +114,35 @@ mod tests {
     }
 
     #[test]
-    fn should_preserve_original_value() {
-        assert_eq!(decode(&encode(b"Hello!")), b"Hello!");
-        assert_eq!(decode(&encode(b"Large msg...")), b"Large msg...");
-        assert_eq!(decode(&encode(b"!@#$%^&*()_+")), b"!@#$%^&*()_+")
+    #[should_panic(expected = "Unable to decode non-base64 character '^'")]
+    fn should_panic_when_decode_non_base64_input() {
+        decode("AAA^AAA==");
+    }
+
+    #[test]
+    fn should_preserve_original_input() {
+        for size in 0..512 {
+            let bytes = random_bytes(size);
+            assert_eq!(decode(&encode(&bytes)), bytes);
+        }
+    }
+
+    #[test]
+    fn should_construct_matching_encode_decode_tables() {
+        for byte in 0..64 {
+            assert_eq!(
+                construct_decode_map()[ENCODE_MAP[byte] as usize],
+                byte as u8
+            );
+        }
+    }
+
+    fn random_bytes(size: usize) -> Vec<u8> {
+        let mut bytes = Vec::with_capacity(size);
+        let mut r = rand::rngs::SmallRng::from_entropy();
+        while bytes.len() < size {
+            bytes.push(r.gen::<u8>());
+        }
+        bytes
     }
 }

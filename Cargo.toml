@@ -1,6 +1,6 @@
 [package]
 name = "rbase64"
-version = "1.2.0"
+version = "1.2.1"
 edition = "2021"
 description = "A simple base64 encoder / decoder CLI tool made in Rust"
 authors = ["Marcel Riera <marcel.riera@outlook.com>"]

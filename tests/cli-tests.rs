@@ -32,9 +32,7 @@ fn given_invalid_stdin_and_decode_arg_expect_error() {
         .write_stdin("!Not a base64 string")
         .assert()
         .failure()
-        .stderr(predicate::str::contains(
-            "Character '!' is not part of the base64 spec",
-        ));
+        .stderr(predicate::str::contains("Unable to decode non-base64 character '!'"));
 }
 
 #[test]

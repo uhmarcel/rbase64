@@ -1,5 +1,10 @@
+const ENCODE_MAP: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+const DECODE_MAP: &[u8; 256] = &construct_decode_map();
+
+const INVALID_BYTE: u8 = 0x40;
+
 pub fn encode(value: &[u8]) -> String {
-    let mut encoded = String::with_capacity(value.len() * 4 / 3);
+    let mut encoded = String::with_capacity((value.len() * 4 / 3) + 8);
     let mut bytes = 0u32;
     let mut size = 0u8;
 
@@ -12,7 +17,7 @@ pub fn encode(value: &[u8]) -> String {
 
             let mask = 0x3f << size;
             encoded.push(to_base64_char(((bytes & mask) >> size) as u8));
-            bytes = bytes & !mask;
+            bytes &= !mask;
         }
     }
 
@@ -36,7 +41,7 @@ pub fn decode(encoded: &str) -> Vec<u8> {
         if char == &b'=' {
             break;
         }
-        bytes = (bytes << 6) + to_byte(char) as u32;
+        bytes = (bytes << 6) + to_byte(*char) as u32;
         size += 6;
 
         while size >= 8 {
@@ -44,50 +49,43 @@ pub fn decode(encoded: &str) -> Vec<u8> {
 
             let mask = 0xff << size;
             decoded.push(((bytes & mask) >> size) as u8);
-            bytes = bytes & !mask;
+            bytes &= !mask;
         }
     }
     decoded
 }
 
 fn to_base64_char(value: u8) -> char {
-    if value < 26 {
-        char::from(b'A' + value)
-    } else if value < 52 {
-        char::from(b'a' + (value - 26))
-    } else if value < 62 {
-        char::from(b'0' + (value - 52))
-    } else if value < 63 {
-        '+'
-    } else if value < 64 {
-        '/'
-    } else {
-        panic!("Input byte is not in base 64 ({})", value)
-    }
+    ENCODE_MAP[value as usize] as char
 }
 
-fn to_byte(base64: &u8) -> u8 {
-    if (b'A'..=b'Z').contains(&base64) {
-        base64 - b'A'
-    } else if (b'a'..=b'z').contains(&base64) {
-        base64 - b'a' + 26
-    } else if (b'0'..=b'9').contains(&base64) {
-        base64 - b'0' + 52
-    } else if base64 == &b'+' {
-        62
-    } else if base64 == &b'/' {
-        63
-    } else {
+fn to_byte(encoded_byte: u8) -> u8 {
+    let decoded = DECODE_MAP[encoded_byte as usize];
+
+    if decoded == INVALID_BYTE {
         panic!(
-            "Character '{}' is not part of the base64 spec ([a-z][A-Z][0-9]+/=)",
-            *base64 as char
+            "Unable to decode non-base64 character '{}'",
+            encoded_byte as char
         )
     }
+    decoded
+}
+
+const fn construct_decode_map() -> [u8; 256] {
+    let mut map = [INVALID_BYTE; 256];
+    let mut index = 0;
+
+    while index < 64 {
+        map[ENCODE_MAP[index] as usize] = index as u8;
+        index += 1;
+    }
+    map
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use rand::{Rng, SeedableRng};
 
     #[test]
     fn should_encode_following_base64_spec() {
@@ -116,9 +114,35 @@ mod tests {
     }
 
     #[test]
-    fn should_preserve_original_value() {
-        assert_eq!(decode(&encode(b"Hello!")), b"Hello!");
-        assert_eq!(decode(&encode(b"Large msg...")), b"Large msg...");
-        assert_eq!(decode(&encode(b"!@#$%^&*()_+")), b"!@#$%^&*()_+")
+    #[should_panic(expected = "Unable to decode non-base64 character '^'")]
+    fn should_panic_when_decode_non_base64_input() {
+        decode("AAA^AAA==");
+    }
+
+    #[test]
+    fn should_preserve_original_input() {
+        for size in 0..512 {
+            let bytes = random_bytes(size);
+            assert_eq!(decode(&encode(&bytes)), bytes);
+        }
+    }
+
+    #[test]
+    fn should_construct_matching_encode_decode_tables() {
+        for byte in 0..64 {
+            assert_eq!(
+                construct_decode_map()[ENCODE_MAP[byte] as usize],
+                byte as u8
+            );
+        }
+    }
+
+    fn random_bytes(size: usize) -> Vec<u8> {
+        let mut bytes = Vec::with_capacity(size);
+        let mut r = rand::rngs::SmallRng::from_entropy();
+        while bytes.len() < size {
+            bytes.push(r.gen::<u8>());
+        }
+        bytes
     }
 }

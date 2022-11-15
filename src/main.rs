@@ -3,8 +3,6 @@ use std::fs;
 use std::io;
 use std::io::Read;
 
-use rbase64;
-
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 struct Args {

@@ -1,11 +1,10 @@
-
 const ENCODE_MAP: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 const DECODE_MAP: &[u8; 256] = &construct_decode_map();
 
 const INVALID_BYTE: u8 = 0x40;
 
 pub fn encode(value: &[u8]) -> String {
-    let mut encoded = String::with_capacity(value.len() * 4 / 3);
+    let mut encoded = String::with_capacity((value.len() * 4 / 3) + 8);
     let mut bytes = 0u32;
     let mut size = 0u8;
 
@@ -18,7 +17,7 @@ pub fn encode(value: &[u8]) -> String {
 
             let mask = 0x3f << size;
             encoded.push(to_base64_char(((bytes & mask) >> size) as u8));
-            bytes = bytes & !mask;
+            bytes &= !mask;
         }
     }
 
@@ -50,21 +49,24 @@ pub fn decode(encoded: &str) -> Vec<u8> {
 
             let mask = 0xff << size;
             decoded.push(((bytes & mask) >> size) as u8);
-            bytes = bytes & !mask;
+            bytes &= !mask;
         }
     }
     decoded
 }
 
 fn to_base64_char(value: u8) -> char {
-    return ENCODE_MAP[value as usize] as char;
+    ENCODE_MAP[value as usize] as char
 }
 
 fn to_byte(encoded_byte: u8) -> u8 {
     let decoded = DECODE_MAP[encoded_byte as usize];
 
     if decoded == INVALID_BYTE {
-        panic!("Unable to decode non-base64 character '{}'", encoded_byte as char)
+        panic!(
+            "Unable to decode non-base64 character '{}'",
+            encoded_byte as char
+        )
     }
     decoded
 }

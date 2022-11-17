@@ -23,24 +23,19 @@ pub fn encode(bytes: &[u8]) -> String {
     let mut acc = 0u64;
     let mut acc_bits = 0u8;
 
-    while in_index < bytes.len() {
-        acc = (acc << 8) | bytes[in_index] as u64;
+    for i in in_index..bytes.len() {
+        acc = (acc << 8) | bytes[i] as u64;
         acc_bits += 8;
-        in_index += 1;
+    }
 
-        while acc_bits >= 6 {
-            acc_bits -= 6;
-
-            let mask = SIX_BIT_MASK << acc_bits;
-            buffer[out_index] = encode_byte(((acc & mask) >> acc_bits) as u8);
-            acc &= !mask;
-            out_index += 1;
-        }
+    while acc_bits >= 6 {
+        acc_bits -= 6;
+        buffer[out_index] = encode_byte(((acc >> acc_bits) & SIX_BIT_MASK) as u8);
+        out_index += 1;
     }
 
     if acc_bits > 0 {
-        acc <<= 6 - acc_bits;
-        buffer[out_index] = encode_byte(acc as u8);
+        buffer[out_index] = encode_byte(((acc << 6 - acc_bits) & SIX_BIT_MASK) as u8);
         out_index += 1;
     }
 

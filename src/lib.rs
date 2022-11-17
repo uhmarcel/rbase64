@@ -1,74 +1,121 @@
 const ENCODE_MAP: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 const DECODE_MAP: &[u8; 256] = &construct_decode_map();
 
+const SIX_BIT_MASK: u64 = 0x3f;
+const BYTE_MASK: u64 = 0xff;
 const INVALID_BYTE: u8 = 0x40;
 
-pub fn encode(value: &[u8]) -> String {
-    let mut encoded = String::with_capacity((value.len() * 4 / 3) + 8);
-    let mut bytes = 0u32;
-    let mut size = 0u8;
 
-    for byte in value {
-        bytes = (bytes << 8) + *byte as u32;
-        size += 8;
+pub fn encode(bytes: &[u8]) -> String {
+    let mut buffer = vec![0; ((bytes.len() / 3) + 1) * 4];
+    let mut in_index = 0;
+    let mut out_index = 0;
 
-        while size >= 6 {
-            size -= 6;
+    while in_index < bytes.len().saturating_sub(8) {
+        let in_u64 = read_u64(bytes, in_index);
 
-            let mask = 0x3f << size;
-            encoded.push(to_base64_char(((bytes & mask) >> size) as u8));
-            bytes &= !mask;
+        for i in 0..8 {
+            buffer[out_index] = encode_byte(((in_u64 >> (58 - i * 6)) & SIX_BIT_MASK) as u8);
+            out_index += 1;
+        }
+        in_index += 6;
+    }
+
+    let mut acc = 0u64;
+    let mut acc_bits = 0u8;
+
+    while in_index < bytes.len() {
+        acc = (acc << 8) | bytes[in_index] as u64;
+        acc_bits += 8;
+        in_index += 1;
+
+        while acc_bits >= 6 {
+            acc_bits -= 6;
+
+            let mask = SIX_BIT_MASK << acc_bits;
+            buffer[out_index] = encode_byte(((acc & mask) >> acc_bits) as u8);
+            acc &= !mask;
+            out_index += 1;
         }
     }
 
-    if size > 0 {
-        bytes <<= 6 - size;
-        encoded.push(to_base64_char(bytes as u8));
+    if acc_bits > 0 {
+        acc <<= 6 - acc_bits;
+        buffer[out_index] = encode_byte(acc as u8);
+        out_index += 1;
     }
 
-    while encoded.len() % 4 > 0 {
-        encoded.push('=');
+    while out_index % 4 > 0 {
+        buffer[out_index] = b'=';
+        out_index += 1;
     }
-    encoded
+    buffer.truncate(out_index);
+
+    String::from_utf8(buffer).expect("Invalid UTF8")
 }
 
 pub fn decode(encoded: &str) -> Vec<u8> {
-    let mut decoded: Vec<u8> = Vec::with_capacity(encoded.len() * 3 / 4);
-    let mut bytes = 0u32;
-    let mut size = 0u8;
+    let input = encoded.as_bytes();
+    let mut buffer = vec![0; ((encoded.len() + 3) / 4) * 3];
+    let mut in_index = 0;
+    let mut out_index = 0;
 
-    for char in encoded.as_bytes() {
-        if char == &b'=' {
-            break;
+    while in_index < input.len().saturating_sub(8) {
+        let mut in_u64 = 0u64;
+        for _ in 0..8 {
+            in_u64 = (in_u64 << 6) | (decode_byte(input[in_index]) << 2) as u64;
+            in_index += 1;
         }
-        bytes = (bytes << 6) + to_byte(*char) as u32;
-        size += 6;
 
-        while size >= 8 {
-            size -= 8;
-
-            let mask = 0xff << size;
-            decoded.push(((bytes & mask) >> size) as u8);
-            bytes &= !mask;
+        for i in 0..6 {
+            buffer[out_index] = ((in_u64 >> (42 - i * 8)) & BYTE_MASK) as u8;
+            out_index += 1;
         }
     }
-    decoded
+
+    let mut acc = 0u64;
+    let mut acc_bits = 0u8;
+
+    while in_index < input.len() {
+        if input[in_index] == b'=' {
+            break;
+        }
+        acc = (acc << 6) + decode_byte(input[in_index]) as u64;
+        acc_bits += 6;
+
+        while acc_bits >= 8 {
+            acc_bits -= 8;
+
+            let mask = BYTE_MASK << acc_bits;
+            buffer[out_index] = ((acc & mask) >> acc_bits) as u8;
+            acc &= !mask;
+            out_index += 1;
+        }
+        in_index += 1;
+    }
+
+    buffer.truncate(out_index);
+    buffer
 }
 
-fn to_base64_char(value: u8) -> char {
-    ENCODE_MAP[value as usize] as char
+fn encode_byte(byte: u8) -> u8 {
+    ENCODE_MAP[byte as usize]
 }
 
-fn to_byte(encoded_byte: u8) -> u8 {
-    let decoded = DECODE_MAP[encoded_byte as usize];
+fn decode_byte(byte: u8) -> u8 {
+    let decoded = DECODE_MAP[byte as usize];
 
     if decoded == INVALID_BYTE {
         panic!(
             "Unable to decode non-base64 character '{}'",
-            encoded_byte as char
+            byte as char
         )
     }
     decoded
+}
+
+fn read_u64(bytes: &[u8], from: usize) -> u64 {
+    u64::from_be_bytes(bytes[from..from + 8].try_into().unwrap())
 }
 
 const fn construct_decode_map() -> [u8; 256] {
@@ -114,17 +161,13 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "Unable to decode non-base64 character '^'")]
-    fn should_panic_when_decode_non_base64_input() {
-        decode("AAA^AAA==");
-    }
-
-    #[test]
     fn should_preserve_original_input() {
         for size in 0..512 {
             let bytes = random_bytes(size);
             assert_eq!(decode(&encode(&bytes)), bytes);
         }
+        let large = random_bytes(3 * 1024 * 1024);
+        assert_eq!(decode(&encode(&large)), large);
     }
 
     #[test]
@@ -135,6 +178,12 @@ mod tests {
                 byte as u8
             );
         }
+    }
+
+    #[test]
+    #[should_panic(expected = "Unable to decode non-base64 character '^'")]
+    fn should_panic_when_decode_non_base64_input() {
+        decode("AAA^AAA==");
     }
 
     fn random_bytes(size: usize) -> Vec<u8> {

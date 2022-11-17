@@ -5,7 +5,6 @@ const SIX_BIT_MASK: u64 = 0x3f;
 const BYTE_MASK: u64 = 0xff;
 const INVALID_BYTE: u8 = 0x40;
 
-
 pub fn encode(bytes: &[u8]) -> String {
     let mut buffer = vec![0; ((bytes.len() / 3) + 1) * 4];
     let mut in_index = 0;
@@ -98,22 +97,22 @@ pub fn decode(encoded: &str) -> Vec<u8> {
     buffer
 }
 
+#[inline(always)]
 fn encode_byte(byte: u8) -> u8 {
     ENCODE_MAP[byte as usize]
 }
 
+#[inline(always)]
 fn decode_byte(byte: u8) -> u8 {
     let decoded = DECODE_MAP[byte as usize];
 
     if decoded == INVALID_BYTE {
-        panic!(
-            "Unable to decode non-base64 character '{}'",
-            byte as char
-        )
+        panic!("Unable to decode non-base64 character '{}'", byte as char)
     }
     decoded
 }
 
+#[inline(always)]
 fn read_u64(bytes: &[u8], from: usize) -> u64 {
     u64::from_be_bytes(bytes[from..from + 8].try_into().unwrap())
 }

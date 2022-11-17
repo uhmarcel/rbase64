@@ -48,9 +48,13 @@ pub fn encode(bytes: &[u8]) -> String {
         buffer[out_index] = b'=';
         out_index += 1;
     }
+
     buffer.truncate(out_index);
 
-    String::from_utf8(buffer).expect("Invalid UTF8")
+    // Buffer is built from UTF8 chars only. Safe to use and improves performance.
+    unsafe {
+        String::from_utf8_unchecked(buffer)
+    }
 }
 
 pub fn decode(encoded: &str) -> Vec<u8> {
@@ -131,6 +135,7 @@ const fn construct_decode_map() -> [u8; 256] {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use rand::rngs::SmallRng;
     use rand::{Rng, SeedableRng};
 
     #[test]
@@ -187,7 +192,7 @@ mod tests {
 
     fn random_bytes(size: usize) -> Vec<u8> {
         let mut bytes = Vec::with_capacity(size);
-        let mut r = rand::rngs::SmallRng::from_entropy();
+        let mut r = SmallRng::from_entropy();
         while bytes.len() < size {
             bytes.push(r.gen::<u8>());
         }

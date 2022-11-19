@@ -3,8 +3,8 @@ use std::cmp::min;
 const ENCODE_MAP: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 const DECODE_MAP: &[u8; 256] = &construct_decode_map();
 
-const SIX_BIT_MASK: u64 = 0x3f;
-const BYTE_MASK: u64 = 0xff;
+const SIX_BIT_MASK: u128 = 0x3f;
+const BYTE_MASK: u128 = 0xff;
 const INVALID_BYTE: u8 = 0x40;
 
 pub fn encode(bytes: &[u8]) -> String {
@@ -12,17 +12,17 @@ pub fn encode(bytes: &[u8]) -> String {
     let mut in_index = 0;
     let mut out_index = 0;
 
-    while in_index < bytes.len().saturating_sub(8) {
-        let in_u64 = read_u64(bytes, in_index);
+    while in_index < bytes.len().saturating_sub(16) {
+        let in_u128 = read_u128(bytes, in_index);
 
-        for i in 0..8 {
-            buffer[out_index] = encode_byte(((in_u64 >> (58 - i * 6)) & SIX_BIT_MASK) as u8);
+        for i in 0..16 {
+            buffer[out_index] = encode_byte(((in_u128 >> (122 - i * 6)) & SIX_BIT_MASK as u128) as u8);
             out_index += 1;
         }
-        in_index += 6;
+        in_index += 12;
     }
 
-    let acc = read_u64_partial(bytes, in_index);
+    let acc = read_u128_partial(bytes, in_index);
     let mut acc_bits = 8 * (bytes.len() - in_index);
 
     while acc_bits >= 6 {
@@ -49,21 +49,23 @@ pub fn encode(bytes: &[u8]) -> String {
     }
 }
 
+const STEP: usize = 2;
+
 pub fn decode(encoded: &str) -> Vec<u8> {
     let input = encoded.as_bytes();
     let mut buffer = vec![0; ((encoded.len() + 3) / 4) * 3];
     let mut in_index = 0;
     let mut out_index = 0;
 
-    while in_index < input.len().saturating_sub(8) {
+    while in_index < input.len().saturating_sub(STEP * 4) {
         let mut in_u64 = 0u64;
-        for _ in 0..8 {
+        for _ in 0..(STEP * 4) {
             in_u64 = (in_u64 << 6) | (decode_byte(input[in_index]) << 2) as u64;
             in_index += 1;
         }
 
-        for i in 0..6 {
-            buffer[out_index] = ((in_u64 >> (42 - i * 8)) & BYTE_MASK) as u8;
+        for i in 0..(STEP * 3) {
+            buffer[out_index] = ((in_u64 >> ((STEP * 4 * 6 - 6) - (i * 8))) & BYTE_MASK as u64) as u8;
             out_index += 1;
         }
     }
@@ -82,7 +84,7 @@ pub fn decode(encoded: &str) -> Vec<u8> {
 
     while acc_bits >= 8 {
         acc_bits -= 8;
-        buffer[out_index] = ((acc >> acc_bits) & BYTE_MASK) as u8;
+        buffer[out_index] = ((acc >> acc_bits) & BYTE_MASK as u64) as u8;
         out_index += 1;
     }
 
@@ -106,17 +108,27 @@ fn decode_byte(byte: u8) -> u8 {
 }
 
 #[inline(always)]
+fn read_u128(bytes: &[u8], from: usize) -> u128 {
+    u128::from_be_bytes(bytes[from..from + 16].try_into().unwrap())
+}
+
+#[inline(always)]
 fn read_u64(bytes: &[u8], from: usize) -> u64 {
     u64::from_be_bytes(bytes[from..from + 8].try_into().unwrap())
 }
+// #[inline(always)]
+// fn read_u128_s(bytes: &[u8], from: usize) -> u128 {
+//     u128::from_be_bytes(bytes[from..from + 16].try_into().unwrap())
+// }
 
-fn read_u64_partial(bytes: &[u8], from: usize) -> u64 {
-    let size = min(bytes.len() - from, 8);
-    let mut buffer = [0u8; 8];
+#[inline(always)]
+fn read_u128_partial(bytes: &[u8], from: usize) -> u128 {
+    let size = min(bytes.len() - from, 16);
+    let mut buffer = [0u8; 16];
 
-    buffer[8 - size..].copy_from_slice(&bytes[from..from + size]);
+    buffer[16 - size..].copy_from_slice(&bytes[from..from + size]);
 
-    u64::from_be_bytes(buffer.try_into().unwrap())
+    u128::from_be_bytes(buffer.try_into().unwrap())
 }
 
 const fn construct_decode_map() -> [u8; 256] {

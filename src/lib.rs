@@ -7,20 +7,24 @@ const SIX_BIT_MASK: u128 = 0x3f;
 const BYTE_MASK: u128 = 0xff;
 const INVALID_BYTE: u8 = 0x40;
 
+const ENCODE_CHUNK_SIZE: usize = 4;
+const DECODE_CHUNK_SIZE: usize = 2;
+
 pub fn encode(bytes: &[u8]) -> String {
     let mut buffer = vec![0; ((bytes.len() / 3) + 1) * 4];
     let mut in_index = 0;
     let mut out_index = 0;
 
-    while in_index < bytes.len().saturating_sub(16) {
+    while in_index < bytes.len().saturating_sub(ENCODE_CHUNK_SIZE * 4) {
         let in_u128 = read_u128(bytes, in_index);
-        let chunk = &mut buffer[out_index..out_index + 16];
+        let chunk = &mut buffer[out_index..out_index + (ENCODE_CHUNK_SIZE * 4)];
+        let offset = 8 * (ENCODE_CHUNK_SIZE * 4 - 1) + 2;
 
         for (i, item) in chunk.iter_mut().enumerate() {
-            *item = encode_byte(((in_u128 >> (122 - i * 6)) & SIX_BIT_MASK as u128) as u8);
+            *item = encode_byte(((in_u128 >> (offset - i * 6)) & SIX_BIT_MASK as u128) as u8);
         }
-        out_index += 16;
-        in_index += 12;
+        out_index += ENCODE_CHUNK_SIZE * 4;
+        in_index += ENCODE_CHUNK_SIZE * 3;
     }
 
     let acc = read_u128_partial(bytes, in_index);
@@ -48,27 +52,26 @@ pub fn encode(bytes: &[u8]) -> String {
     unsafe { String::from_utf8_unchecked(buffer) }
 }
 
-const STEP: usize = 2;
-
 pub fn decode(encoded: &str) -> Vec<u8> {
     let input = encoded.as_bytes();
     let mut buffer = vec![0; ((encoded.len() + 3) / 4) * 3];
     let mut in_index = 0;
     let mut out_index = 0;
 
-    while in_index < input.len().saturating_sub(STEP * 4) {
-        let in_chunk = &input[in_index..in_index + (STEP * 4)];
-        let out_chunk = &mut buffer[out_index..out_index + (STEP * 3)];
+    while in_index < input.len().saturating_sub(DECODE_CHUNK_SIZE * 4) {
+        let in_chunk = &input[in_index..in_index + (DECODE_CHUNK_SIZE * 4)];
+        let out_chunk = &mut buffer[out_index..out_index + (DECODE_CHUNK_SIZE * 3)];
+        let offset = (DECODE_CHUNK_SIZE * 4 - 1) * 6;
         let mut in_u64 = 0u64;
 
         for (i, in_byte) in in_chunk.iter().enumerate() {
-            in_u64 |= (decode_byte(*in_byte) as u64) << (44 - i * 6) as u64;
+            in_u64 |= (decode_byte(*in_byte) as u64) << (offset - i * 6 + 2) as u64;
         }
         for (i, out_byte) in out_chunk.iter_mut().enumerate() {
-            *out_byte = ((in_u64 >> ((STEP * 4 * 6 - 6) - (i * 8))) & BYTE_MASK as u64) as u8;
+            *out_byte = ((in_u64 >> (offset - (i * 8))) & BYTE_MASK as u64) as u8;
         }
-        out_index += STEP * 3;
-        in_index += STEP * 4;
+        in_index += DECODE_CHUNK_SIZE * 4;
+        out_index += DECODE_CHUNK_SIZE * 3;
     }
 
     let mut acc = 0u64;

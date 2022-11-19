@@ -14,11 +14,12 @@ pub fn encode(bytes: &[u8]) -> String {
 
     while in_index < bytes.len().saturating_sub(16) {
         let in_u128 = read_u128(bytes, in_index);
+        let chunk = &mut buffer[out_index..];
 
         for i in 0..16 {
-            buffer[out_index] = encode_byte(((in_u128 >> (122 - i * 6)) & SIX_BIT_MASK as u128) as u8);
-            out_index += 1;
+            chunk[i] = encode_byte(((in_u128 >> (122 - i * 6)) & SIX_BIT_MASK as u128) as u8);
         }
+        out_index += 16;
         in_index += 12;
     }
 
@@ -59,15 +60,17 @@ pub fn decode(encoded: &str) -> Vec<u8> {
 
     while in_index < input.len().saturating_sub(STEP * 4) {
         let mut in_u64 = 0u64;
-        for _ in 0..(STEP * 4) {
-            in_u64 = (in_u64 << 6) | (decode_byte(input[in_index]) << 2) as u64;
-            in_index += 1;
-        }
+        let in_chunk = &input[in_index..in_index + (STEP * 4)];
+        let out_chunk = &mut buffer[out_index..out_index + (STEP * 3)];
 
-        for i in 0..(STEP * 3) {
-            buffer[out_index] = ((in_u64 >> ((STEP * 4 * 6 - 6) - (i * 8))) & BYTE_MASK as u64) as u8;
-            out_index += 1;
+        for i in 0..(STEP * 4) {
+            in_u64 |= (decode_byte(in_chunk[i]) as u64) << (44 - i * 6) as u64;
         }
+        for i in 0..(STEP * 3) {
+            out_chunk[i] = ((in_u64 >> ((STEP * 4 * 6 - 6) - (i * 8))) & BYTE_MASK as u64) as u8;
+        }
+        out_index += STEP * 3;
+        in_index += STEP * 4;
     }
 
     let mut acc = 0u64;

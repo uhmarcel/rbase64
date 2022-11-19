@@ -102,6 +102,39 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           path-to-lcov: lcov.info
 
+  profiling:
+    name: Profiling
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Install stable toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+      - name: Checkout main
+        uses: actions/checkout@v3
+        with:
+          ref: main
+      - name: Profiling baseline
+        run: cargo bench --bench benchmarks -- --save-baseline main
+      - name: Checkout HEAD
+        uses: actions/checkout@v3
+        with:
+          clean: false
+      - name: Profiling changes
+        run: cargo bench --bench benchmarks -- --baseline main > results.txt
+      - name: Setup nodejs
+        uses: actions/setup-node@v3
+      - name: Generate report markdown
+        run: (echo '# Profiling Report' && echo '```diff' && cat results.txt && echo '```') | ./bin/diff.js > report.md
+      - name: Display report
+        uses: mshick/add-pr-comment@v2
+        with:
+          message-path: report.md
+
   publish:
     name: Publish artifact
     needs: [check, fmt, clippy, test]

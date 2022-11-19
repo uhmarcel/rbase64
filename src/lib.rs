@@ -1,8 +1,10 @@
+use std::cmp::min;
+
 const ENCODE_MAP: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 const DECODE_MAP: &[u8; 256] = &construct_decode_map();
 
-const SIX_BIT_MASK: u64 = 0x3f;
-const BYTE_MASK: u64 = 0xff;
+const SIX_BIT_MASK: u128 = 0x3f;
+const BYTE_MASK: u128 = 0xff;
 const INVALID_BYTE: u8 = 0x40;
 
 pub fn encode(bytes: &[u8]) -> String {
@@ -10,37 +12,28 @@ pub fn encode(bytes: &[u8]) -> String {
     let mut in_index = 0;
     let mut out_index = 0;
 
-    while in_index < bytes.len().saturating_sub(8) {
-        let in_u64 = read_u64(bytes, in_index);
+    while in_index < bytes.len().saturating_sub(16) {
+        let in_u128 = read_u128(bytes, in_index);
+        let chunk = &mut buffer[out_index..out_index + 16];
 
-        for i in 0..8 {
-            buffer[out_index] = encode_byte(((in_u64 >> (58 - i * 6)) & SIX_BIT_MASK) as u8);
-            out_index += 1;
+        for (i, item) in chunk.iter_mut().enumerate() {
+            *item = encode_byte(((in_u128 >> (122 - i * 6)) & SIX_BIT_MASK as u128) as u8);
         }
-        in_index += 6;
+        out_index += 16;
+        in_index += 12;
     }
 
-    let mut acc = 0u64;
-    let mut acc_bits = 0u8;
+    let acc = read_u128_partial(bytes, in_index);
+    let mut acc_bits = 8 * (bytes.len() - in_index);
 
-    while in_index < bytes.len() {
-        acc = (acc << 8) | bytes[in_index] as u64;
-        acc_bits += 8;
-        in_index += 1;
-
-        while acc_bits >= 6 {
-            acc_bits -= 6;
-
-            let mask = SIX_BIT_MASK << acc_bits;
-            buffer[out_index] = encode_byte(((acc & mask) >> acc_bits) as u8);
-            acc &= !mask;
-            out_index += 1;
-        }
+    while acc_bits >= 6 {
+        acc_bits -= 6;
+        buffer[out_index] = encode_byte(((acc >> acc_bits) & SIX_BIT_MASK) as u8);
+        out_index += 1;
     }
 
     if acc_bits > 0 {
-        acc <<= 6 - acc_bits;
-        buffer[out_index] = encode_byte(acc as u8);
+        buffer[out_index] = encode_byte(((acc << (6 - acc_bits)) & SIX_BIT_MASK) as u8);
         out_index += 1;
     }
 
@@ -48,10 +41,14 @@ pub fn encode(bytes: &[u8]) -> String {
         buffer[out_index] = b'=';
         out_index += 1;
     }
+
     buffer.truncate(out_index);
 
-    String::from_utf8(buffer).expect("Invalid UTF8")
+    // Buffer is built from UTF8 chars only. Safe to use and improves performance.
+    unsafe { String::from_utf8_unchecked(buffer) }
 }
+
+const STEP: usize = 2;
 
 pub fn decode(encoded: &str) -> Vec<u8> {
     let input = encoded.as_bytes();
@@ -59,17 +56,19 @@ pub fn decode(encoded: &str) -> Vec<u8> {
     let mut in_index = 0;
     let mut out_index = 0;
 
-    while in_index < input.len().saturating_sub(8) {
+    while in_index < input.len().saturating_sub(STEP * 4) {
+        let in_chunk = &input[in_index..in_index + (STEP * 4)];
+        let out_chunk = &mut buffer[out_index..out_index + (STEP * 3)];
         let mut in_u64 = 0u64;
-        for _ in 0..8 {
-            in_u64 = (in_u64 << 6) | (decode_byte(input[in_index]) << 2) as u64;
-            in_index += 1;
-        }
 
-        for i in 0..6 {
-            buffer[out_index] = ((in_u64 >> (42 - i * 8)) & BYTE_MASK) as u8;
-            out_index += 1;
+        for (i, in_byte) in in_chunk.iter().enumerate() {
+            in_u64 |= (decode_byte(*in_byte) as u64) << (44 - i * 6) as u64;
         }
+        for (i, out_byte) in out_chunk.iter_mut().enumerate() {
+            *out_byte = ((in_u64 >> ((STEP * 4 * 6 - 6) - (i * 8))) & BYTE_MASK as u64) as u8;
+        }
+        out_index += STEP * 3;
+        in_index += STEP * 4;
     }
 
     let mut acc = 0u64;
@@ -81,16 +80,13 @@ pub fn decode(encoded: &str) -> Vec<u8> {
         }
         acc = (acc << 6) + decode_byte(input[in_index]) as u64;
         acc_bits += 6;
-
-        while acc_bits >= 8 {
-            acc_bits -= 8;
-
-            let mask = BYTE_MASK << acc_bits;
-            buffer[out_index] = ((acc & mask) >> acc_bits) as u8;
-            acc &= !mask;
-            out_index += 1;
-        }
         in_index += 1;
+    }
+
+    while acc_bits >= 8 {
+        acc_bits -= 8;
+        buffer[out_index] = ((acc >> acc_bits) & BYTE_MASK as u64) as u8;
+        out_index += 1;
     }
 
     buffer.truncate(out_index);
@@ -113,8 +109,18 @@ fn decode_byte(byte: u8) -> u8 {
 }
 
 #[inline(always)]
-fn read_u64(bytes: &[u8], from: usize) -> u64 {
-    u64::from_be_bytes(bytes[from..from + 8].try_into().unwrap())
+fn read_u128(bytes: &[u8], from: usize) -> u128 {
+    u128::from_be_bytes(bytes[from..from + 16].try_into().unwrap())
+}
+
+#[inline(always)]
+fn read_u128_partial(bytes: &[u8], from: usize) -> u128 {
+    let size = min(bytes.len() - from, 16);
+    let mut buffer = [0u8; 16];
+
+    buffer[16 - size..].copy_from_slice(&bytes[from..from + size]);
+
+    u128::from_be_bytes(buffer)
 }
 
 const fn construct_decode_map() -> [u8; 256] {
@@ -131,6 +137,7 @@ const fn construct_decode_map() -> [u8; 256] {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use rand::rngs::SmallRng;
     use rand::{Rng, SeedableRng};
 
     #[test]
@@ -187,7 +194,7 @@ mod tests {
 
     fn random_bytes(size: usize) -> Vec<u8> {
         let mut bytes = Vec::with_capacity(size);
-        let mut r = rand::rngs::SmallRng::from_entropy();
+        let mut r = SmallRng::from_entropy();
         while bytes.len() < size {
             bytes.push(r.gen::<u8>());
         }

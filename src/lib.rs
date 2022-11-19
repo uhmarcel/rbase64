@@ -14,10 +14,10 @@ pub fn encode(bytes: &[u8]) -> String {
 
     while in_index < bytes.len().saturating_sub(16) {
         let in_u128 = read_u128(bytes, in_index);
-        let chunk = &mut buffer[out_index..];
+        let chunk = &mut buffer[out_index..out_index + 16];
 
-        for i in 0..16 {
-            chunk[i] = encode_byte(((in_u128 >> (122 - i * 6)) & SIX_BIT_MASK as u128) as u8);
+        for (i, item) in chunk.iter_mut().enumerate() {
+            *item = encode_byte(((in_u128 >> (122 - i * 6)) & SIX_BIT_MASK as u128) as u8);
         }
         out_index += 16;
         in_index += 12;
@@ -33,7 +33,7 @@ pub fn encode(bytes: &[u8]) -> String {
     }
 
     if acc_bits > 0 {
-        buffer[out_index] = encode_byte(((acc << 6 - acc_bits) & SIX_BIT_MASK) as u8);
+        buffer[out_index] = encode_byte(((acc << (6 - acc_bits)) & SIX_BIT_MASK) as u8);
         out_index += 1;
     }
 
@@ -45,9 +45,7 @@ pub fn encode(bytes: &[u8]) -> String {
     buffer.truncate(out_index);
 
     // Buffer is built from UTF8 chars only. Safe to use and improves performance.
-    unsafe {
-        String::from_utf8_unchecked(buffer)
-    }
+    unsafe { String::from_utf8_unchecked(buffer) }
 }
 
 const STEP: usize = 2;
@@ -59,15 +57,15 @@ pub fn decode(encoded: &str) -> Vec<u8> {
     let mut out_index = 0;
 
     while in_index < input.len().saturating_sub(STEP * 4) {
-        let mut in_u64 = 0u64;
         let in_chunk = &input[in_index..in_index + (STEP * 4)];
         let out_chunk = &mut buffer[out_index..out_index + (STEP * 3)];
+        let mut in_u64 = 0u64;
 
-        for i in 0..(STEP * 4) {
-            in_u64 |= (decode_byte(in_chunk[i]) as u64) << (44 - i * 6) as u64;
+        for (i, in_byte) in in_chunk.iter().enumerate() {
+            in_u64 |= (decode_byte(*in_byte) as u64) << (44 - i * 6) as u64;
         }
-        for i in 0..(STEP * 3) {
-            out_chunk[i] = ((in_u64 >> ((STEP * 4 * 6 - 6) - (i * 8))) & BYTE_MASK as u64) as u8;
+        for (i, out_byte) in out_chunk.iter_mut().enumerate() {
+            *out_byte = ((in_u64 >> ((STEP * 4 * 6 - 6) - (i * 8))) & BYTE_MASK as u64) as u8;
         }
         out_index += STEP * 3;
         in_index += STEP * 4;
@@ -116,22 +114,13 @@ fn read_u128(bytes: &[u8], from: usize) -> u128 {
 }
 
 #[inline(always)]
-fn read_u64(bytes: &[u8], from: usize) -> u64 {
-    u64::from_be_bytes(bytes[from..from + 8].try_into().unwrap())
-}
-// #[inline(always)]
-// fn read_u128_s(bytes: &[u8], from: usize) -> u128 {
-//     u128::from_be_bytes(bytes[from..from + 16].try_into().unwrap())
-// }
-
-#[inline(always)]
 fn read_u128_partial(bytes: &[u8], from: usize) -> u128 {
     let size = min(bytes.len() - from, 16);
     let mut buffer = [0u8; 16];
 
     buffer[16 - size..].copy_from_slice(&bytes[from..from + size]);
 
-    u128::from_be_bytes(buffer.try_into().unwrap())
+    u128::from_be_bytes(buffer)
 }
 
 const fn construct_decode_map() -> [u8; 256] {

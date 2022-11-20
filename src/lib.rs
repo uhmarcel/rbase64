@@ -1,3 +1,4 @@
+use rayon::prelude::*;
 use std::cmp::min;
 use std::iter::zip;
 
@@ -10,36 +11,34 @@ const INVALID_BYTE: u8 = 0x40;
 
 const ENCODE_CHUNK_SIZE: usize = 4;
 const DECODE_CHUNK_SIZE: usize = 2;
+const PARALLEL_THRESHOLD_CHUNKS: usize = 1024;
+
+const ENCODE_U128_OFFSET: usize = (ENCODE_CHUNK_SIZE * 3 - 1) * 8;
+const DECODE_U64_OFFSET: usize = (DECODE_CHUNK_SIZE * 4 - 1) * 6;
 
 pub fn encode(bytes: &[u8]) -> String {
     let mut buffer = vec![0; ((bytes.len() / 3) + 1) * 4];
-
     let total_chunks = bytes.len() / (ENCODE_CHUNK_SIZE * 3);
-    let in_chunks = bytes.chunks_exact(ENCODE_CHUNK_SIZE * 3);
-    let out_chunks = buffer.chunks_exact_mut(ENCODE_CHUNK_SIZE * 4);
-    let offset = 8 * (ENCODE_CHUNK_SIZE * 3 - 1);
 
-    for (in_chunk, out_chunk) in zip(in_chunks, out_chunks) {
-        let in_u128 = read_u128_partial(in_chunk);
-
-        for (i, out_byte) in out_chunk.iter_mut().enumerate() {
-            *out_byte = encode_byte(((in_u128 >> (2 + offset - 6 * i)) & SIX_BIT_MASK) as u8);
-        }
+    if total_chunks < PARALLEL_THRESHOLD_CHUNKS {
+        encode_u128_chunks(bytes, &mut buffer);
+    } else {
+        encode_u128_chunks_parallel(bytes, &mut buffer);
     }
 
     let in_index = ENCODE_CHUNK_SIZE * total_chunks * 3;
     let mut out_index = ENCODE_CHUNK_SIZE * total_chunks * 4;
-    let acc = read_u128_partial(&bytes[in_index..]);
-    let mut acc_bits = 8 * (bytes.len() - in_index);
+    let in_u128 = read_u128_partial(&bytes[in_index..]);
+    let mut in_bits = 8 * (bytes.len() - in_index);
 
-    while acc_bits >= 6 {
-        acc_bits -= 6;
-        buffer[out_index] = encode_byte(((acc >> acc_bits) & SIX_BIT_MASK) as u8);
+    while in_bits >= 6 {
+        in_bits -= 6;
+        buffer[out_index] = encode_byte(((in_u128 >> in_bits) & SIX_BIT_MASK) as u8);
         out_index += 1;
     }
 
-    if acc_bits > 0 {
-        buffer[out_index] = encode_byte(((acc << (6 - acc_bits)) & SIX_BIT_MASK) as u8);
+    if in_bits > 0 {
+        buffer[out_index] = encode_byte(((in_u128 << (6 - in_bits)) & SIX_BIT_MASK) as u8);
         out_index += 1;
     }
 
@@ -63,19 +62,10 @@ pub fn decode(encoded: &str) -> Vec<u8> {
         .saturating_sub(DECODE_CHUNK_SIZE)
         .saturating_div(DECODE_CHUNK_SIZE * 4);
 
-    let in_chunks = input.chunks_exact(DECODE_CHUNK_SIZE * 4);
-    let out_chunks = buffer.chunks_exact_mut(DECODE_CHUNK_SIZE * 3);
-    let offset = (DECODE_CHUNK_SIZE * 4 - 1) * 6;
-
-    for (in_chunk, out_chunk) in zip(in_chunks, out_chunks).take(total_chunks) {
-        let mut in_u64 = 0u64;
-
-        for (i, in_byte) in in_chunk.iter().enumerate() {
-            in_u64 |= (decode_byte(*in_byte) as u64) << (offset - 6 * i + 2) as u64;
-        }
-        for (i, out_byte) in out_chunk.iter_mut().enumerate() {
-            *out_byte = ((in_u64 >> (offset - (8 * i))) & BYTE_MASK) as u8;
-        }
+    if total_chunks < PARALLEL_THRESHOLD_CHUNKS {
+        decode_u64_chunks(input, &mut buffer, total_chunks);
+    } else {
+        decode_u64_chunks_parallel(input, &mut buffer, total_chunks);
     }
 
     let mut in_u64 = 0u64;
@@ -101,6 +91,71 @@ pub fn decode(encoded: &str) -> Vec<u8> {
 
     buffer.truncate(3 * DECODE_CHUNK_SIZE * total_chunks + bytes_remaining);
     buffer
+}
+
+#[inline(always)]
+fn encode_u128_chunks(input: &[u8], buffer: &mut [u8]) {
+    let in_chunks = input.chunks_exact(ENCODE_CHUNK_SIZE * 3);
+    let out_chunks = buffer.chunks_exact_mut(ENCODE_CHUNK_SIZE * 4);
+
+    zip(in_chunks, out_chunks).for_each(|(in_chunk, out_chunk)| {
+        encode_u128(in_chunk, out_chunk);
+    });
+}
+
+#[inline(always)]
+fn encode_u128_chunks_parallel(input: &[u8], buffer: &mut [u8]) {
+    let in_chunks = input.par_chunks_exact(ENCODE_CHUNK_SIZE * 3);
+    let out_chunks = buffer.par_chunks_exact_mut(ENCODE_CHUNK_SIZE * 4);
+
+    in_chunks.zip(out_chunks).for_each(|(in_chunk, out_chunk)| {
+        encode_u128(in_chunk, out_chunk);
+    });
+}
+
+#[inline(always)]
+fn encode_u128(input: &[u8], buffer: &mut [u8]) {
+    let in_u128 = read_u128_partial(input);
+
+    buffer.iter_mut().enumerate().for_each(|(i, out_b)| {
+        *out_b = encode_byte(((in_u128 >> (2 + ENCODE_U128_OFFSET - 6 * i)) & SIX_BIT_MASK) as u8);
+    });
+}
+
+#[inline(always)]
+fn decode_u64_chunks(input: &[u8], buffer: &mut [u8], total_chunks: usize) {
+    let in_chunks = input.chunks_exact(DECODE_CHUNK_SIZE * 4);
+    let out_chunks = buffer.chunks_exact_mut(DECODE_CHUNK_SIZE * 3);
+
+    for (in_chunk, out_chunk) in zip(in_chunks, out_chunks).take(total_chunks) {
+        decode_u64(in_chunk, out_chunk);
+    }
+}
+
+#[inline(always)]
+fn decode_u64_chunks_parallel(input: &[u8], buffer: &mut [u8], total_chunks: usize) {
+    let in_chunks = input.par_chunks_exact(DECODE_CHUNK_SIZE * 4);
+    let out_chunks = buffer.par_chunks_exact_mut(DECODE_CHUNK_SIZE * 3);
+
+    in_chunks
+        .zip(out_chunks)
+        .take(total_chunks)
+        .for_each(|(in_chunk, out_chunk)| {
+            decode_u64(in_chunk, out_chunk);
+        });
+}
+
+#[inline(always)]
+fn decode_u64(input: &[u8], buffer: &mut [u8]) {
+    let mut in_u64 = 0u64;
+
+    input.iter().enumerate().for_each(|(i, in_byte)| {
+        in_u64 |= (decode_byte(*in_byte) as u64) << (DECODE_U64_OFFSET - 6 * i + 2) as u64;
+    });
+
+    buffer.iter_mut().enumerate().for_each(|(i, out_byte)| {
+        *out_byte = ((in_u64 >> (DECODE_U64_OFFSET - (8 * i))) & BYTE_MASK) as u8;
+    });
 }
 
 #[inline(always)]

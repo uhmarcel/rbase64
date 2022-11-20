@@ -1,9 +1,24 @@
 use crate::common::*;
-use rayon::prelude::*;
 use std::iter::zip;
 
 #[inline(always)]
+#[cfg(not(feature = "parallel"))]
 pub(crate) fn decode_u64_chunks(input: &[u8], buffer: &mut [u8], total_chunks: usize) {
+    decode_u64_chunks_sync(input, buffer, total_chunks);
+}
+
+#[inline(always)]
+#[cfg(feature = "parallel")]
+pub(crate) fn decode_u64_chunks(input: &[u8], buffer: &mut [u8], total_chunks: usize) {
+    if input.len() < PARALLEL_THRESHOLD_BYTES {
+        decode_u64_chunks_sync(input, buffer, total_chunks);
+    } else {
+        decode_u64_chunks_parallel(input, buffer, total_chunks);
+    };
+}
+
+#[inline(always)]
+fn decode_u64_chunks_sync(input: &[u8], buffer: &mut [u8], total_chunks: usize) {
     let in_chunks = input.chunks_exact(DEC_CHUNK_SIZE * 4);
     let out_chunks = buffer.chunks_exact_mut(DEC_CHUNK_SIZE * 3);
 
@@ -13,7 +28,10 @@ pub(crate) fn decode_u64_chunks(input: &[u8], buffer: &mut [u8], total_chunks: u
 }
 
 #[inline(always)]
-pub(crate) fn decode_u64_chunks_parallel(input: &[u8], buffer: &mut [u8], total_chunks: usize) {
+#[cfg(feature = "parallel")]
+fn decode_u64_chunks_parallel(input: &[u8], buffer: &mut [u8], total_chunks: usize) {
+    use rayon::prelude::*;
+
     let in_chunks = input.par_chunks_exact(DEC_CHUNK_SIZE * 4);
     let out_chunks = buffer.par_chunks_exact_mut(DEC_CHUNK_SIZE * 3);
 

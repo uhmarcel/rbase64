@@ -1,6 +1,4 @@
 use crate::common::*;
-use crate::decode::*;
-use crate::encode::*;
 
 mod common;
 mod decode;
@@ -10,13 +8,9 @@ pub fn encode(input: &[u8]) -> String {
     let mut buffer = vec![0; ((input.len() / 3) + 1) * 4];
     let total_chunks = input.len() / (ENC_CHUNK_SIZE * 3);
 
-    if input.len() < PARALLEL_THRESHOLD_BYTES {
-        encode::encode_u64_chunks(input, &mut buffer);
-    } else {
-        encode::encode_u64_chunks_parallel(input, &mut buffer);
-    };
+    encode::encode_u64_chunks(input, &mut buffer);
 
-    let bytes_rem = encode_u128_remainder(
+    let bytes_rem = encode::encode_u64_remainder(
         &input[ENC_CHUNK_SIZE * total_chunks * 3..],
         &mut buffer[ENC_CHUNK_SIZE * total_chunks * 4..],
     );
@@ -36,13 +30,9 @@ pub fn decode(encoded: &str) -> Vec<u8> {
         .saturating_sub(DEC_CHUNK_SIZE)
         .saturating_div(DEC_CHUNK_SIZE * 4);
 
-    if input.len() < PARALLEL_THRESHOLD_BYTES {
-        decode_u64_chunks(input, &mut buffer, total_chunks);
-    } else {
-        decode_u64_chunks_parallel(input, &mut buffer, total_chunks);
-    }
+    decode::decode_u64_chunks(input, &mut buffer, total_chunks);
 
-    let bytes_rem = decode_u64_remainder(
+    let bytes_rem = decode::decode_u64_remainder(
         &input[DEC_CHUNK_SIZE * total_chunks * 4..],
         &mut buffer[DEC_CHUNK_SIZE * total_chunks * 3..],
     );

@@ -12,6 +12,7 @@ pub const DEC_CHUNK_SIZE: usize = 2;
 pub const ENC_U128_OFFSET: usize = (ENC_CHUNK_SIZE * 3 - 1) * 8;
 pub const DEC_U64_OFFSET: usize = (DEC_CHUNK_SIZE * 4 - 1) * 6;
 
+#[cfg(feature = "parallel")]
 pub const PARALLEL_THRESHOLD_BYTES: usize = 2 << 16; // 128 KiB
 
 const fn construct_decode_map() -> [u8; 256] {

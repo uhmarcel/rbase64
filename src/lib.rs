@@ -13,22 +13,23 @@ const DECODE_CHUNK_SIZE: usize = 2;
 
 pub fn encode(bytes: &[u8]) -> String {
     let mut buffer = vec![0; ((bytes.len() / 3) + 1) * 4];
-    let mut in_index = 0;
-    let mut out_index = 0;
 
-    while in_index < bytes.len().saturating_sub(ENCODE_CHUNK_SIZE * 4) {
-        let in_u128 = read_u128(bytes, in_index);
-        let chunk = &mut buffer[out_index..out_index + (ENCODE_CHUNK_SIZE * 4)];
-        let offset = 8 * (ENCODE_CHUNK_SIZE * 4 - 1) + 2;
+    let total_chunks = bytes.len() / (ENCODE_CHUNK_SIZE * 3);
+    let in_chunks = bytes.chunks_exact(ENCODE_CHUNK_SIZE * 3);
+    let out_chunks = buffer.chunks_exact_mut(ENCODE_CHUNK_SIZE * 4);
+    let offset = 8 * (ENCODE_CHUNK_SIZE * 3 - 1);
 
-        for (i, item) in chunk.iter_mut().enumerate() {
-            *item = encode_byte(((in_u128 >> (offset - 6 * i)) & SIX_BIT_MASK) as u8);
+    for (in_chunk, out_chunk) in zip(in_chunks, out_chunks) {
+        let in_u128 = read_u128_partial(in_chunk);
+
+        for (i, out_byte) in out_chunk.iter_mut().enumerate() {
+            *out_byte = encode_byte(((in_u128 >> (2 + offset - 6 * i)) & SIX_BIT_MASK) as u8);
         }
-        out_index += ENCODE_CHUNK_SIZE * 4;
-        in_index += ENCODE_CHUNK_SIZE * 3;
     }
 
-    let acc = read_u128_partial(bytes, in_index);
+    let in_index = ENCODE_CHUNK_SIZE * total_chunks * 3;
+    let mut out_index = ENCODE_CHUNK_SIZE * total_chunks * 4;
+    let acc = read_u128_partial(&bytes[in_index..]);
     let mut acc_bits = 8 * (bytes.len() - in_index);
 
     while acc_bits >= 6 {
@@ -118,16 +119,11 @@ fn decode_byte(byte: u8) -> u8 {
 }
 
 #[inline(always)]
-fn read_u128(bytes: &[u8], from: usize) -> u128 {
-    u128::from_be_bytes(bytes[from..from + 16].try_into().unwrap())
-}
-
-#[inline(always)]
-fn read_u128_partial(bytes: &[u8], from: usize) -> u128 {
-    let size = min(bytes.len() - from, 16);
+fn read_u128_partial(bytes: &[u8]) -> u128 {
+    let size = min(bytes.len(), 16);
     let mut buffer = [0u8; 16];
 
-    buffer[16 - size..].copy_from_slice(&bytes[from..from + size]);
+    buffer[16 - size..].copy_from_slice(&bytes[..size]);
 
     u128::from_be_bytes(buffer)
 }

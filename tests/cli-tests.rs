@@ -38,8 +38,8 @@ fn given_invalid_stdin_and_decode_arg_expect_error() {
 }
 
 #[test]
-fn given_input_arg_expect_encoded_string_in_stdout() {
-    let expected = fs::read_to_string("./tests/resources/utf8.base64").unwrap();
+fn given_text_file_input_arg_expect_encoded_string_in_stdout() {
+    let expected = fs::read_to_string("./tests/resources/utf8.b64").unwrap();
 
     Command::cargo_bin("rbase64")
         .unwrap()
@@ -52,7 +52,7 @@ fn given_input_arg_expect_encoded_string_in_stdout() {
 
 #[test]
 fn given_positional_arg_expect_encoded_string_in_stdout() {
-    let expected = fs::read_to_string("./tests/resources/utf8.base64").unwrap();
+    let expected = fs::read_to_string("./tests/resources/utf8.b64").unwrap();
 
     Command::cargo_bin("rbase64")
         .unwrap()
@@ -69,7 +69,7 @@ fn given_input_arg_and_decode_arg_expect_decoded_string_in_stdout() {
     Command::cargo_bin("rbase64")
         .unwrap()
         .arg("-i")
-        .arg("./tests/resources/utf8.base64")
+        .arg("./tests/resources/utf8.b64")
         .arg("-d")
         .assert()
         .success()
@@ -78,8 +78,7 @@ fn given_input_arg_and_decode_arg_expect_decoded_string_in_stdout() {
 
 #[test]
 fn given_stdin_and_output_arg_expect_encoded_string_in_file() {
-    let filepath = format!("./tests/tmp/{}.txt", Utc::now().to_rfc3339());
-    fs::create_dir("./tests/tmp").ok();
+    let filepath = format!("./tests/t1-{}", Utc::now().to_rfc3339());
 
     Command::cargo_bin("rbase64")
         .unwrap()
@@ -93,5 +92,42 @@ fn given_stdin_and_output_arg_expect_encoded_string_in_file() {
     let result = fs::read_to_string(&filepath).unwrap();
     assert_eq!(result, "Y2xpZW50OnNlY3JldA==");
 
-    fs::remove_dir_all("./tests/tmp").unwrap();
+    fs::remove_file(&filepath).unwrap();
+}
+
+#[test]
+fn given_binary_file_input_arg_expect_encoded_string_in_stdout() {
+    let expected = fs::read_to_string("./tests/resources/bytes.b64").unwrap();
+
+    Command::cargo_bin("rbase64")
+        .unwrap()
+        .arg("--input")
+        .arg("./tests/resources/bytes.bin")
+        .assert()
+        .success()
+        .stdout(expected);
+}
+
+#[test]
+fn given_non_utf8_encoded_binary_and_output_arg_expect_decoded_binary_file() {
+    let filepath = format!("./tests/t2-{}.bin", Utc::now().to_rfc3339());
+
+    Command::cargo_bin("rbase64")
+        .unwrap()
+        .arg("--input")
+        .arg("./tests/resources/bytes.b64")
+        .arg("--output")
+        .arg(&filepath)
+        .arg("--decode")
+        .assert()
+        .success()
+        .stdout("");
+
+    let result = fs::read(&filepath).unwrap();
+    let expected = fs::read("./tests/resources/bytes.bin").unwrap();
+
+    assert_eq!(result.len(), expected.len());
+    assert_eq!(result, expected);
+
+    fs::remove_file(&filepath).unwrap();
 }

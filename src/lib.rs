@@ -11,9 +11,9 @@ pub fn encode(input: &[u8]) -> String {
     let total_chunks = input.len() / (ENC_CHUNK_SIZE * 3);
 
     if input.len() < PARALLEL_THRESHOLD_BYTES {
-        encode::encode_u128_chunks(input, &mut buffer);
+        encode::encode_u64_chunks(input, &mut buffer);
     } else {
-        encode::encode_u128_chunks_parallel(input, &mut buffer);
+        encode::encode_u64_chunks_parallel(input, &mut buffer);
     };
 
     let bytes_rem = encode_u128_remainder(

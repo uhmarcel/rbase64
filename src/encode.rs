@@ -4,7 +4,7 @@ use std::cmp::min;
 use std::iter::zip;
 
 #[inline(always)]
-pub(crate) fn encode_u128_chunks(input: &[u8], buffer: &mut [u8]) {
+pub(crate) fn encode_u64_chunks(input: &[u8], buffer: &mut [u8]) {
     let in_chunks = input.chunks_exact(ENC_CHUNK_SIZE * 3);
     let out_chunks = buffer.chunks_exact_mut(ENC_CHUNK_SIZE * 4);
 
@@ -14,7 +14,7 @@ pub(crate) fn encode_u128_chunks(input: &[u8], buffer: &mut [u8]) {
 }
 
 #[inline(always)]
-pub(crate) fn encode_u128_chunks_parallel(input: &[u8], buffer: &mut [u8]) {
+pub(crate) fn encode_u64_chunks_parallel(input: &[u8], buffer: &mut [u8]) {
     let in_chunks = input.par_chunks_exact(ENC_CHUNK_SIZE * 3);
     let out_chunks = buffer.par_chunks_exact_mut(ENC_CHUNK_SIZE * 4);
 
@@ -57,13 +57,13 @@ fn encode_u128(input: &[u8], buffer: &mut [u8]) {
 }
 
 #[inline(always)]
-fn read_u128_partial(bytes: &[u8]) -> u128 {
-    let size = min(bytes.len(), 16);
-    let mut buffer = [0u8; 16];
+fn read_u128_partial(bytes: &[u8]) -> u64 {
+    let mut buffer = [0u8; 8];
+    let size = min(bytes.len(), 8);
 
-    buffer[16 - size..].copy_from_slice(&bytes[..size]);
+    buffer[8 - size..].copy_from_slice(&bytes[..size]);
 
-    u128::from_be_bytes(buffer)
+    u64::from_be_bytes(buffer)
 }
 
 #[inline(always)]

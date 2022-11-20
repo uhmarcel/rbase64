@@ -104,6 +104,7 @@ jobs:
 
   profiling:
     name: Profiling
+    if: github.ref != 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write

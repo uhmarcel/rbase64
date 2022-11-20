@@ -1,54 +1,21 @@
-use std::cmp::min;
-use std::iter::zip;
+use crate::common::*;
 
-const ENCODE_MAP: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-const DECODE_MAP: &[u8; 256] = &construct_decode_map();
+mod common;
+mod decode;
+mod encode;
 
-const SIX_BIT_MASK: u128 = 0x3f;
-const BYTE_MASK: u64 = 0xff;
-const INVALID_BYTE: u8 = 0x40;
+pub fn encode(input: &[u8]) -> String {
+    let mut buffer = vec![0; ((input.len() / 3) + 1) * 4];
+    let total_chunks = input.len() / (ENC_CHUNK_SIZE * 3);
 
-const ENCODE_CHUNK_SIZE: usize = 4;
-const DECODE_CHUNK_SIZE: usize = 2;
+    encode::encode_u64_chunks(input, &mut buffer);
 
-pub fn encode(bytes: &[u8]) -> String {
-    let mut buffer = vec![0; ((bytes.len() / 3) + 1) * 4];
+    let bytes_rem = encode::encode_u64_remainder(
+        &input[ENC_CHUNK_SIZE * total_chunks * 3..],
+        &mut buffer[ENC_CHUNK_SIZE * total_chunks * 4..],
+    );
 
-    let total_chunks = bytes.len() / (ENCODE_CHUNK_SIZE * 3);
-    let in_chunks = bytes.chunks_exact(ENCODE_CHUNK_SIZE * 3);
-    let out_chunks = buffer.chunks_exact_mut(ENCODE_CHUNK_SIZE * 4);
-    let offset = 8 * (ENCODE_CHUNK_SIZE * 3 - 1);
-
-    for (in_chunk, out_chunk) in zip(in_chunks, out_chunks) {
-        let in_u128 = read_u128_partial(in_chunk);
-
-        for (i, out_byte) in out_chunk.iter_mut().enumerate() {
-            *out_byte = encode_byte(((in_u128 >> (2 + offset - 6 * i)) & SIX_BIT_MASK) as u8);
-        }
-    }
-
-    let in_index = ENCODE_CHUNK_SIZE * total_chunks * 3;
-    let mut out_index = ENCODE_CHUNK_SIZE * total_chunks * 4;
-    let acc = read_u128_partial(&bytes[in_index..]);
-    let mut acc_bits = 8 * (bytes.len() - in_index);
-
-    while acc_bits >= 6 {
-        acc_bits -= 6;
-        buffer[out_index] = encode_byte(((acc >> acc_bits) & SIX_BIT_MASK) as u8);
-        out_index += 1;
-    }
-
-    if acc_bits > 0 {
-        buffer[out_index] = encode_byte(((acc << (6 - acc_bits)) & SIX_BIT_MASK) as u8);
-        out_index += 1;
-    }
-
-    while out_index % 4 > 0 {
-        buffer[out_index] = b'=';
-        out_index += 1;
-    }
-
-    buffer.truncate(out_index);
+    buffer.truncate(ENC_CHUNK_SIZE * total_chunks * 4 + bytes_rem);
 
     // Buffer is built from UTF8 chars only. Safe to use and improves performance.
     unsafe { String::from_utf8_unchecked(buffer) }
@@ -60,83 +27,18 @@ pub fn decode(encoded: &str) -> Vec<u8> {
 
     let total_chunks = input
         .len()
-        .saturating_sub(DECODE_CHUNK_SIZE)
-        .saturating_div(DECODE_CHUNK_SIZE * 4);
+        .saturating_sub(DEC_CHUNK_SIZE)
+        .saturating_div(DEC_CHUNK_SIZE * 4);
 
-    let in_chunks = input.chunks_exact(DECODE_CHUNK_SIZE * 4);
-    let out_chunks = buffer.chunks_exact_mut(DECODE_CHUNK_SIZE * 3);
-    let offset = (DECODE_CHUNK_SIZE * 4 - 1) * 6;
+    decode::decode_u64_chunks(input, &mut buffer, total_chunks);
 
-    for (in_chunk, out_chunk) in zip(in_chunks, out_chunks).take(total_chunks) {
-        let mut in_u64 = 0u64;
+    let bytes_rem = decode::decode_u64_remainder(
+        &input[DEC_CHUNK_SIZE * total_chunks * 4..],
+        &mut buffer[DEC_CHUNK_SIZE * total_chunks * 3..],
+    );
 
-        for (i, in_byte) in in_chunk.iter().enumerate() {
-            in_u64 |= (decode_byte(*in_byte) as u64) << (offset - 6 * i + 2) as u64;
-        }
-        for (i, out_byte) in out_chunk.iter_mut().enumerate() {
-            *out_byte = ((in_u64 >> (offset - (8 * i))) & BYTE_MASK) as u8;
-        }
-    }
-
-    let mut in_u64 = 0u64;
-    let mut in_bits = 0;
-
-    for in_byte in input[DECODE_CHUNK_SIZE * total_chunks * 4..].iter() {
-        if *in_byte == b'=' {
-            break;
-        }
-        in_u64 = (in_u64 << 6) | decode_byte(*in_byte) as u64;
-        in_bits += 6;
-    }
-
-    let bytes_remaining = in_bits / 8;
-    let start_pos = DECODE_CHUNK_SIZE * total_chunks * 3;
-
-    for (i, out_byte) in buffer[start_pos..start_pos + bytes_remaining]
-        .iter_mut()
-        .enumerate()
-    {
-        *out_byte = ((in_u64 >> (in_bits - 8 * (i + 1))) & BYTE_MASK) as u8;
-    }
-
-    buffer.truncate(3 * DECODE_CHUNK_SIZE * total_chunks + bytes_remaining);
+    buffer.truncate(3 * DEC_CHUNK_SIZE * total_chunks + bytes_rem);
     buffer
-}
-
-#[inline(always)]
-fn encode_byte(byte: u8) -> u8 {
-    ENCODE_MAP[byte as usize]
-}
-
-#[inline(always)]
-fn decode_byte(byte: u8) -> u8 {
-    let decoded = DECODE_MAP[byte as usize];
-
-    if decoded == INVALID_BYTE {
-        panic!("Unable to decode non-base64 character '{}'", byte as char)
-    }
-    decoded
-}
-
-#[inline(always)]
-fn read_u128_partial(bytes: &[u8]) -> u128 {
-    let size = min(bytes.len(), 16);
-    let mut buffer = [0u8; 16];
-
-    buffer[16 - size..].copy_from_slice(&bytes[..size]);
-
-    u128::from_be_bytes(buffer)
-}
-
-const fn construct_decode_map() -> [u8; 256] {
-    let mut map = [INVALID_BYTE; 256];
-    let mut index = 0;
-
-    while index < 64 {
-        map[ENCODE_MAP[index] as usize] = index as u8;
-        index += 1;
-    }
-    map
 }
 
 #[cfg(test)]
@@ -179,16 +81,6 @@ mod tests {
         }
         let large = random_bytes(3 * 1024 * 1024);
         assert_eq!(decode(&encode(&large)), large);
-    }
-
-    #[test]
-    fn should_construct_matching_encode_decode_tables() {
-        for byte in 0..64 {
-            assert_eq!(
-                construct_decode_map()[ENCODE_MAP[byte] as usize],
-                byte as u8
-            );
-        }
     }
 
     #[test]

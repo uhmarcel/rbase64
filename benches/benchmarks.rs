@@ -11,7 +11,20 @@ use rbase64;
 const KB: usize = 1024;
 const MB: usize = 1024 * 1024;
 
-const BYTE_SIZES: [usize; 8] = [3, 50, 100, 500, 3 * KB, 1 * MB, 5 * MB, 10 * MB];
+const BYTE_SIZES: [usize; 12] = [
+    3,
+    50,
+    100,
+    500,
+    3 * KB,
+    50 * KB,
+    100 * KB,
+    500 * KB,
+    1 * MB,
+    5 * MB,
+    10 * MB,
+    20 * MB,
+];
 
 fn benchmark_of<F>(c: &mut Criterion, name: &str, f: F)
 where

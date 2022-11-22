@@ -33,12 +33,15 @@ fn encode_u64_chunks_sync(input: &[u8], buffer: &mut [u8]) {
 fn encode_u64_chunks_parallel(input: &[u8], buffer: &mut [u8]) {
     use rayon::prelude::*;
 
-    let in_chunks = input.par_chunks_exact(ENC_CHUNK_SIZE * 3);
-    let out_chunks = buffer.par_chunks_exact_mut(ENC_CHUNK_SIZE * 4);
+    let batch_size = PARALLEL_BATCH_SIZE * ENC_CHUNK_SIZE;
+    let in_batches = input.par_chunks(batch_size * 3);
+    let out_batches = buffer.par_chunks_mut(batch_size * 4);
 
-    in_chunks.zip(out_chunks).for_each(|(in_chunk, out_chunk)| {
-        encode_u64(in_chunk, out_chunk);
-    });
+    in_batches
+        .zip(out_batches)
+        .for_each(|(in_batch, out_batch)| {
+            encode_u64_chunks_sync(in_batch, out_batch);
+        });
 }
 
 #[inline(always)]
@@ -68,9 +71,10 @@ pub(crate) fn encode_u64_remainder(input: &[u8], buffer: &mut [u8]) -> usize {
 #[inline(always)]
 fn encode_u64(input: &[u8], buffer: &mut [u8]) {
     let in_u64 = read_u64_partial(input);
+    let offset = (ENC_CHUNK_SIZE * 3 - 1) * 8;
 
     buffer.iter_mut().enumerate().for_each(|(i, out_b)| {
-        *out_b = encode_byte(((in_u64 >> (2 + ENC_U128_OFFSET - 6 * i)) & SIX_BIT_MASK) as u8);
+        *out_b = encode_byte(((in_u64 >> (2 + offset - (i * 6))) & SIX_BIT_MASK) as u8);
     });
 }
 

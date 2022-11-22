@@ -23,21 +23,17 @@ pub fn encode(input: &[u8]) -> String {
 
 pub fn decode(encoded: &str) -> Vec<u8> {
     let input = encoded.as_bytes();
-    let mut buffer = vec![0; ((encoded.len() + 3) / 4) * 3];
+    let mut buffer = vec![0; ((input.len() + 3) / 4) * 3];
 
-    let total_chunks = input
-        .len()
-        .saturating_sub(DEC_CHUNK_SIZE)
-        .saturating_div(DEC_CHUNK_SIZE * 4);
+    let total_chunks = input.len().saturating_sub(2) / (DEC_CHUNK_SIZE * 4);
+    let in_limit = total_chunks * DEC_CHUNK_SIZE * 4;
+    let out_limit = total_chunks * DEC_CHUNK_SIZE * 3;
 
-    decode::decode_u64_chunks(input, &mut buffer, total_chunks);
+    decode::decode_u64_chunks(&input[..in_limit], &mut buffer);
 
-    let bytes_rem = decode::decode_u64_remainder(
-        &input[DEC_CHUNK_SIZE * total_chunks * 4..],
-        &mut buffer[DEC_CHUNK_SIZE * total_chunks * 3..],
-    );
+    let bytes_rem = decode::decode_u64_remainder(&input[in_limit..], &mut buffer[out_limit..]);
 
-    buffer.truncate(3 * DEC_CHUNK_SIZE * total_chunks + bytes_rem);
+    buffer.truncate(out_limit + bytes_rem);
     buffer
 }
 

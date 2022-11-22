@@ -2,18 +2,17 @@ pub const ENCODE_MAP: &[u8; 64] =
     b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 pub const DECODE_MAP: &[u8; 256] = &construct_decode_map();
 
+pub const ENC_CHUNK_SIZE: usize = 2;
+pub const DEC_CHUNK_SIZE: usize = 2;
+
 pub const SIX_BIT_MASK: u64 = 0x3f;
 pub const BYTE_MASK: u64 = 0xff;
 pub const INVALID_BYTE: u8 = 0x40;
 
-pub const ENC_CHUNK_SIZE: usize = 2;
-pub const DEC_CHUNK_SIZE: usize = 2;
-
-pub const ENC_U128_OFFSET: usize = (ENC_CHUNK_SIZE * 3 - 1) * 8;
-pub const DEC_U64_OFFSET: usize = (DEC_CHUNK_SIZE * 4 - 1) * 6;
-
 #[cfg(feature = "parallel")]
 pub const PARALLEL_THRESHOLD_BYTES: usize = 2 << 16; // 128 KiB
+#[cfg(feature = "parallel")]
+pub const PARALLEL_BATCH_SIZE: usize = 256;
 
 const fn construct_decode_map() -> [u8; 256] {
     let mut map = [INVALID_BYTE; 256];

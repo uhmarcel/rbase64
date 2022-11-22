@@ -1,248 +1,255 @@
 # Profiling Report
 ```diff
-encode/3                time:   [33.121 ns 33.157 ns 33.196 ns]
-                        thrpt:  [86.186 MiB/s 86.287 MiB/s 86.380 MiB/s]
+
+encode/3                time:   [32.914 ns 33.037 ns 33.217 ns]
+                        thrpt:  [86.130 MiB/s 86.601 MiB/s 86.925 MiB/s]
                  change:
-                        time:   [-0.3017% -0.1409% +0.0153%] (p = 0.09 > 0.05)
-                        thrpt:  [-0.0153% +0.1411% +0.3027%]
-                        No change in performance detected.
-Found 5 outliers among 100 measurements (5.00%)
-  2 (2.00%) high mild
-  3 (3.00%) high severe
-
-encode/50               time:   [47.790 ns 47.835 ns 47.883 ns]
-                        thrpt:  [995.84 MiB/s 996.85 MiB/s 997.78 MiB/s]
-                 change:
-                        time:   [+0.1093% +0.3075% +0.4975%] (p = 0.00 < 0.05)
-                        thrpt:  [-0.4950% -0.3065% -0.1091%]
-                        Change within noise threshold.
-Found 5 outliers among 100 measurements (5.00%)
-  4 (4.00%) high mild
-  1 (1.00%) high severe
-
-encode/100              time:   [65.539 ns 65.570 ns 65.606 ns]
-                        thrpt:  [1.4196 GiB/s 1.4204 GiB/s 1.4210 GiB/s]
-                 change:
-                        time:   [-0.3224% -0.1855% -0.0513%] (p = 0.01 < 0.05)
-                        thrpt:  [+0.0514% +0.1858% +0.3234%]
-                        Change within noise threshold.
-Found 6 outliers among 100 measurements (6.00%)
-  3 (3.00%) high mild
-  3 (3.00%) high severe
-
-encode/500              time:   [221.86 ns 222.34 ns 222.94 ns]
-                        thrpt:  [2.0887 GiB/s 2.0943 GiB/s 2.0989 GiB/s]
-
-                 change:
-+                        time:   [-2.6294% -2.1876% -1.6980%] (p = 0.00 < 0.05)
-+                        thrpt:  [+1.7273% +2.2366% +2.7004%]
-+                        Performance has improved.
-Found 11 outliers among 100 measurements (11.00%)
-  3 (3.00%) high mild
-  8 (8.00%) high severe
-
-encode/3072             time:   [1.0993 µs 1.0999 µs 1.1006 µs]
-                        thrpt:  [2.5995 GiB/s 2.6011 GiB/s 2.6026 GiB/s]
-                 change:
-                        time:   [-0.2303% -0.1011% +0.0200%] (p = 0.11 > 0.05)
-                        thrpt:  [-0.0200% +0.1012% +0.2308%]
-                        No change in performance detected.
-Found 11 outliers among 100 measurements (11.00%)
-  8 (8.00%) high mild
-  3 (3.00%) high severe
-
-encode/51200            time:   [17.977 µs 17.999 µs 18.022 µs]
-                        thrpt:  [2.6458 GiB/s 2.6492 GiB/s 2.6525 GiB/s]
-                 change:
-                        time:   [-0.0155% +0.1116% +0.2430%] (p = 0.10 > 0.05)
-                        thrpt:  [-0.2424% -0.1115% +0.0155%]
-                        No change in performance detected.
-Found 5 outliers among 100 measurements (5.00%)
-  4 (4.00%) high mild
-  1 (1.00%) high severe
-
-encode/102400           time:   [36.021 µs 36.044 µs 36.067 µs]
-                        thrpt:  [2.6442 GiB/s 2.6459 GiB/s 2.6476 GiB/s]
-                 change:
-                        time:   [+0.0666% +0.1675% +0.2703%] (p = 0.00 < 0.05)
-                        thrpt:  [-0.2696% -0.1672% -0.0665%]
-                        Change within noise threshold.
-Found 10 outliers among 100 measurements (10.00%)
-  7 (7.00%) high mild
-  3 (3.00%) high severe
-
-encode/512000           time:   [86.979 µs 87.512 µs 88.098 µs]
-                        thrpt:  [5.4126 GiB/s 5.4488 GiB/s 5.4822 GiB/s]
-                 change:
-+                        time:   [-53.417% -52.844% -52.261%] (p = 0.00 < 0.05)
-+                        thrpt:  [+109.47% +112.06% +114.67%]
-+                        Performance has improved.
-Found 7 outliers among 100 measurements (7.00%)
-  1 (1.00%) low mild
-  2 (2.00%) high mild
-  4 (4.00%) high severe
-
-encode/1048576          time:   [129.89 µs 131.14 µs 132.63 µs]
-                        thrpt:  [7.3633 GiB/s 7.4466 GiB/s 7.5187 GiB/s]
-                 change:
-+                        time:   [-59.433% -58.786% -58.148%] (p = 0.00 < 0.05)
-+                        thrpt:  [+138.94% +142.63% +146.50%]
-+                        Performance has improved.
-Found 10 outliers among 100 measurements (10.00%)
-  6 (6.00%) high mild
-  4 (4.00%) high severe
-
-encode/5242880          time:   [833.25 µs 837.25 µs 841.87 µs]
-                        thrpt:  [5.7999 GiB/s 5.8320 GiB/s 5.8599 GiB/s]
-                 change:
-+                        time:   [-49.378% -48.994% -48.550%] (p = 0.00 < 0.05)
-+                        thrpt:  [+94.362% +96.056% +97.544%]
-+                        Performance has improved.
-Found 12 outliers among 100 measurements (12.00%)
-  7 (7.00%) high mild
-  5 (5.00%) high severe
-
-encode/10485760         time:   [1.5284 ms 1.5353 ms 1.5434 ms]
-                        thrpt:  [6.3272 GiB/s 6.3607 GiB/s 6.3896 GiB/s]
-                 change:
-+                        time:   [-51.544% -51.255% -50.968%] (p = 0.00 < 0.05)
-+                        thrpt:  [+103.95% +105.15% +106.37%]
-+                        Performance has improved.
-Found 10 outliers among 100 measurements (10.00%)
-  1 (1.00%) high mild
-  9 (9.00%) high severe
-
-encode/20971520         time:   [2.9371 ms 2.9426 ms 2.9487 ms]
-                        thrpt:  [6.6237 GiB/s 6.6373 GiB/s 6.6498 GiB/s]
-                 change:
-+                        time:   [-52.437% -52.266% -52.098%] (p = 0.00 < 0.05)
-+                        thrpt:  [+108.76% +109.50% +110.25%]
-+                        Performance has improved.
-Found 6 outliers among 100 measurements (6.00%)
-  3 (3.00%) high mild
-  3 (3.00%) high severe
-
-
-
-decode/3                time:   [31.047 ns 31.064 ns 31.084 ns]
-                        thrpt:  [92.043 MiB/s 92.100 MiB/s 92.150 MiB/s]
-                 change:
-                        time:   [+0.0958% +0.2309% +0.3567%] (p = 0.00 < 0.05)
-                        thrpt:  [-0.3555% -0.2304% -0.0957%]
-                        Change within noise threshold.
+-                        time:   [+2.1153% +3.9641% +6.3489%] (p = 0.00 < 0.05)
+-                        thrpt:  [-5.9699% -3.8129% -2.0715%]
+-                        Performance has regressed.
 Found 13 outliers among 100 measurements (13.00%)
-  3 (3.00%) high mild
-  10 (10.00%) high severe
-
-decode/50               time:   [45.584 ns 45.652 ns 45.756 ns]
-                        thrpt:  [1.0177 GiB/s 1.0200 GiB/s 1.0216 GiB/s]
-                 change:
-                        time:   [-0.4541% +0.2538% +1.5121%] (p = 0.78 > 0.05)
-                        thrpt:  [-1.4896% -0.2531% +0.4562%]
-                        No change in performance detected.
-Found 7 outliers among 100 measurements (7.00%)
-  3 (3.00%) high mild
-  4 (4.00%) high severe
-
-decode/100              time:   [59.453 ns 59.577 ns 59.759 ns]
-                        thrpt:  [1.5585 GiB/s 1.5632 GiB/s 1.5665 GiB/s]
-                 change:
-+                        time:   [-2.0493% -1.7408% -1.4391%] (p = 0.00 < 0.05)
-+                        thrpt:  [+1.4601% +1.7716% +2.0922%]
-+                        Performance has improved.
-Found 11 outliers among 100 measurements (11.00%)
-  1 (1.00%) low mild
-  2 (2.00%) high mild
+  5 (5.00%) high mild
   8 (8.00%) high severe
 
-decode/500              time:   [206.29 ns 206.49 ns 206.69 ns]
-                        thrpt:  [2.2530 GiB/s 2.2552 GiB/s 2.2574 GiB/s]
+encode/50               time:   [46.908 ns 46.972 ns 47.043 ns]
+                        thrpt:  [1013.6 MiB/s 1015.1 MiB/s 1016.5 MiB/s]
                  change:
-                        time:   [+0.7530% +0.9254% +1.0894%] (p = 0.00 < 0.05)
-                        thrpt:  [-1.0777% -0.9169% -0.7473%]
-                        Change within noise threshold.
-Found 14 outliers among 100 measurements (14.00%)
-  2 (2.00%) low severe
-  5 (5.00%) high mild
-  7 (7.00%) high severe
-
-decode/3072             time:   [948.23 ns 948.76 ns 949.36 ns]
-                        thrpt:  [3.0136 GiB/s 3.0155 GiB/s 3.0172 GiB/s]
-                 change:
-+                        time:   [-4.3035% -4.2059% -4.1059%] (p = 0.00 < 0.05)
-+                        thrpt:  [+4.2817% +4.3906% +4.4970%]
-+                        Performance has improved.
-Found 5 outliers among 100 measurements (5.00%)
-  2 (2.00%) high mild
-  3 (3.00%) high severe
-
-decode/51200            time:   [15.568 µs 15.603 µs 15.641 µs]
-                        thrpt:  [3.0486 GiB/s 3.0560 GiB/s 3.0629 GiB/s]
-                 change:
-+                        time:   [-3.5945% -3.3231% -3.0502%] (p = 0.00 < 0.05)
-+                        thrpt:  [+3.1461% +3.4373% +3.7286%]
-+                        Performance has improved.
-Found 4 outliers among 100 measurements (4.00%)
-  2 (2.00%) high mild
-  2 (2.00%) high severe
-
-decode/102400           time:   [31.029 µs 31.131 µs 31.229 µs]
-                        thrpt:  [3.0538 GiB/s 3.0635 GiB/s 3.0735 GiB/s]
-                 change:
-+                        time:   [-3.3724% -3.1084% -2.8340%] (p = 0.00 < 0.05)
-+                        thrpt:  [+2.9167% +3.2082% +3.4901%]
-+                        Performance has improved.
-
-decode/512000           time:   [71.603 µs 72.167 µs 72.819 µs]
-                        thrpt:  [6.5482 GiB/s 6.6074 GiB/s 6.6595 GiB/s]
-                 change:
-+                        time:   [-55.776% -55.090% -54.450%] (p = 0.00 < 0.05)
-+                        thrpt:  [+119.54% +122.67% +126.12%]
-+                        Performance has improved.
+                        time:   [-0.3823% -0.0658% +0.3724%] (p = 0.74 > 0.05)
+                        thrpt:  [-0.3710% +0.0658% +0.3838%]
+                        No change in performance detected.
 Found 10 outliers among 100 measurements (10.00%)
-  1 (1.00%) low mild
-  3 (3.00%) high mild
+  4 (4.00%) high mild
   6 (6.00%) high severe
 
-decode/1048576          time:   [111.90 µs 112.31 µs 112.77 µs]
-                        thrpt:  [8.6600 GiB/s 8.6949 GiB/s 8.7273 GiB/s]
+encode/100              time:   [64.616 ns 64.686 ns 64.757 ns]
+                        thrpt:  [1.4382 GiB/s 1.4398 GiB/s 1.4413 GiB/s]
                  change:
-+                        time:   [-60.393% -59.606% -58.741%] (p = 0.00 < 0.05)
-+                        thrpt:  [+142.37% +147.56% +152.48%]
+                        time:   [-1.3551% -1.1364% -0.9161%] (p = 0.00 < 0.05)
+                        thrpt:  [+0.9245% +1.1495% +1.3737%]
+                        Change within noise threshold.
+Found 7 outliers among 100 measurements (7.00%)
+  5 (5.00%) high mild
+  2 (2.00%) high severe
+
+encode/500              time:   [217.78 ns 218.37 ns 219.33 ns]
+                        thrpt:  [2.1231 GiB/s 2.1325 GiB/s 2.1382 GiB/s]
+                 change:
++                        time:   [-1.8834% -1.5536% -1.2441%] (p = 0.00 < 0.05)
++                        thrpt:  [+1.2598% +1.5781% +1.9196%]
 +                        Performance has improved.
-Found 9 outliers among 100 measurements (9.00%)
-  1 (1.00%) low mild
-  3 (3.00%) high mild
+Found 10 outliers among 100 measurements (10.00%)
+  4 (4.00%) high mild
+  6 (6.00%) high severe
+
+encode/3072             time:   [1.0794 µs 1.0807 µs 1.0822 µs]
+                        thrpt:  [2.6438 GiB/s 2.6474 GiB/s 2.6505 GiB/s]
+                 change:
+                        time:   [-1.3591% -0.8781% -0.4761%] (p = 0.00 < 0.05)
+                        thrpt:  [+0.4784% +0.8859% +1.3778%]
+                        Change within noise threshold.
+Found 19 outliers among 100 measurements (19.00%)
+  12 (12.00%) high mild
+  7 (7.00%) high severe
+
+encode/51200            time:   [17.665 µs 17.681 µs 17.696 µs]
+                        thrpt:  [2.6945 GiB/s 2.6970 GiB/s 2.6994 GiB/s]
+                 change:
+                        time:   [-0.6563% -0.4157% -0.1736%] (p = 0.00 < 0.05)
+                        thrpt:  [+0.1739% +0.4175% +0.6606%]
+                        Change within noise threshold.
+Found 6 outliers among 100 measurements (6.00%)
+  1 (1.00%) high mild
   5 (5.00%) high severe
 
-decode/5242880          time:   [596.82 µs 598.86 µs 601.36 µs]
-                        thrpt:  [8.1197 GiB/s 8.1534 GiB/s 8.1814 GiB/s]
+encode/102400           time:   [35.389 µs 35.422 µs 35.461 µs]
+                        thrpt:  [2.6894 GiB/s 2.6923 GiB/s 2.6948 GiB/s]
                  change:
-+                        time:   [-50.188% -49.478% -48.586%] (p = 0.00 < 0.05)
-+                        thrpt:  [+94.500% +97.933% +100.76%]
-+                        Performance has improved.
-Found 18 outliers among 100 measurements (18.00%)
-  9 (9.00%) high mild
+                        time:   [-1.0823% -0.8242% -0.5663%] (p = 0.00 < 0.05)
+                        thrpt:  [+0.5695% +0.8311% +1.0942%]
+                        Change within noise threshold.
+Found 9 outliers among 100 measurements (9.00%)
+  5 (5.00%) high mild
+  4 (4.00%) high severe
+
+encode/512000           time:   [90.109 µs 92.017 µs 94.150 µs]
+                        thrpt:  [5.0646 GiB/s 5.1821 GiB/s 5.2918 GiB/s]
+                 change:
+                        time:   [-0.9075% +1.2513% +3.6167%] (p = 0.28 > 0.05)
+                        thrpt:  [-3.4905% -1.2359% +0.9159%]
+                        No change in performance detected.
+Found 14 outliers among 100 measurements (14.00%)
+  2 (2.00%) low mild
+  3 (3.00%) high mild
   9 (9.00%) high severe
 
-decode/10485760         time:   [1.1953 ms 1.2062 ms 1.2201 ms]
-                        thrpt:  [8.0041 GiB/s 8.0960 GiB/s 8.1701 GiB/s]
+encode/1048576          time:   [130.32 µs 131.35 µs 132.50 µs]
+                        thrpt:  [7.3700 GiB/s 7.4348 GiB/s 7.4935 GiB/s]
                  change:
-+                        time:   [-49.341% -48.852% -48.060%] (p = 0.00 < 0.05)
-+                        thrpt:  [+92.528% +95.512% +97.397%]
-+                        Performance has improved.
-Found 13 outliers among 100 measurements (13.00%)
+                        time:   [-0.1584% +1.3937% +2.9381%] (p = 0.08 > 0.05)
+                        thrpt:  [-2.8543% -1.3746% +0.1587%]
+                        No change in performance detected.
+Found 14 outliers among 100 measurements (14.00%)
+  9 (9.00%) high mild
+  5 (5.00%) high severe
+
+encode/5242880          time:   [836.25 µs 844.56 µs 855.20 µs]
+                        thrpt:  [5.7096 GiB/s 5.7815 GiB/s 5.8390 GiB/s]
+                 change:
+                        time:   [-3.5489% -0.4059% +2.5482%] (p = 0.81 > 0.05)
+                        thrpt:  [-2.4849% +0.4076% +3.6795%]
+                        No change in performance detected.
+Found 11 outliers among 100 measurements (11.00%)
   3 (3.00%) high mild
+  8 (8.00%) high severe
+
+encode/10485760         time:   [1.5256 ms 1.5355 ms 1.5469 ms]
+                        thrpt:  [6.3130 GiB/s 6.3599 GiB/s 6.4010 GiB/s]
+                 change:
+                        time:   [-0.9159% -0.0140% +0.8283%] (p = 0.98 > 0.05)
+                        thrpt:  [-0.8215% +0.0140% +0.9243%]
+                        No change in performance detected.
+Found 12 outliers among 100 measurements (12.00%)
+  1 (1.00%) high mild
+  11 (11.00%) high severe
+
+encode/20971520         time:   [2.9660 ms 2.9913 ms 3.0248 ms]
+                        thrpt:  [6.4571 GiB/s 6.5294 GiB/s 6.5850 GiB/s]
+                 change:
+                        time:   [-0.5013% +0.6144% +2.0107%] (p = 0.33 > 0.05)
+                        thrpt:  [-1.9711% -0.6106% +0.5038%]
+                        No change in performance detected.
+Found 19 outliers among 100 measurements (19.00%)
+  8 (8.00%) high mild
+  11 (11.00%) high severe
+
+
+
+decode/3                time:   [31.052 ns 31.082 ns 31.113 ns]
+                        thrpt:  [91.955 MiB/s 92.048 MiB/s 92.138 MiB/s]
+                 change:
+                        time:   [-0.3367% -0.1641% +0.0049%] (p = 0.07 > 0.05)
+                        thrpt:  [-0.0049% +0.1644% +0.3379%]
+                        No change in performance detected.
+Found 18 outliers among 100 measurements (18.00%)
+  1 (1.00%) low severe
+  7 (7.00%) low mild
+  5 (5.00%) high mild
+  5 (5.00%) high severe
+
+decode/50               time:   [45.627 ns 45.688 ns 45.759 ns]
+                        thrpt:  [1.0176 GiB/s 1.0192 GiB/s 1.0206 GiB/s]
+                 change:
+                        time:   [+0.0285% +0.2053% +0.3755%] (p = 0.02 < 0.05)
+                        thrpt:  [-0.3741% -0.2048% -0.0285%]
+                        Change within noise threshold.
+Found 9 outliers among 100 measurements (9.00%)
+  4 (4.00%) high mild
+  5 (5.00%) high severe
+
+decode/100              time:   [59.578 ns 59.838 ns 60.178 ns]
+                        thrpt:  [1.5476 GiB/s 1.5564 GiB/s 1.5632 GiB/s]
+                 change:
+                        time:   [-0.0672% +0.3950% +0.9375%] (p = 0.11 > 0.05)
+                        thrpt:  [-0.9288% -0.3934% +0.0672%]
+                        No change in performance detected.
+Found 17 outliers among 100 measurements (17.00%)
+  1 (1.00%) low mild
+  5 (5.00%) high mild
+  11 (11.00%) high severe
+
+decode/500              time:   [199.31 ns 199.94 ns 200.66 ns]
+                        thrpt:  [2.3206 GiB/s 2.3290 GiB/s 2.3364 GiB/s]
+                 change:
++                        time:   [-3.4414% -3.1322% -2.8314%] (p = 0.00 < 0.05)
++                        thrpt:  [+2.9139% +3.2334% +3.5640%]
++                        Performance has improved.
+Found 14 outliers among 100 measurements (14.00%)
+  13 (13.00%) high mild
+  1 (1.00%) high severe
+
+decode/3072             time:   [945.41 ns 946.93 ns 948.71 ns]
+                        thrpt:  [3.0157 GiB/s 3.0214 GiB/s 3.0262 GiB/s]
+                 change:
+                        time:   [-0.0110% +0.1316% +0.2922%] (p = 0.11 > 0.05)
+                        thrpt:  [-0.2914% -0.1314% +0.0110%]
+                        No change in performance detected.
+Found 11 outliers among 100 measurements (11.00%)
+  5 (5.00%) low mild
+  2 (2.00%) high mild
+  4 (4.00%) high severe
+
+decode/51200            time:   [15.558 µs 15.611 µs 15.662 µs]
+                        thrpt:  [3.0446 GiB/s 3.0545 GiB/s 3.0649 GiB/s]
+                 change:
+                        time:   [-0.1928% +0.1764% +0.5486%] (p = 0.36 > 0.05)
+                        thrpt:  [-0.5456% -0.1761% +0.1931%]
+                        No change in performance detected.
+Found 1 outliers among 100 measurements (1.00%)
+  1 (1.00%) high mild
+
+decode/102400           time:   [30.866 µs 30.976 µs 31.085 µs]
+                        thrpt:  [3.0679 GiB/s 3.0787 GiB/s 3.0897 GiB/s]
+                 change:
+                        time:   [-0.9775% -0.6184% -0.2538%] (p = 0.00 < 0.05)
+                        thrpt:  [+0.2545% +0.6223% +0.9871%]
+                        Change within noise threshold.
+Found 5 outliers among 100 measurements (5.00%)
+  5 (5.00%) high mild
+
+decode/512000           time:   [71.555 µs 72.078 µs 72.684 µs]
+                        thrpt:  [6.5604 GiB/s 6.6156 GiB/s 6.6639 GiB/s]
+                 change:
+                        time:   [-0.3378% +0.9551% +2.3631%] (p = 0.17 > 0.05)
+                        thrpt:  [-2.3085% -0.9460% +0.3389%]
+                        No change in performance detected.
+Found 13 outliers among 100 measurements (13.00%)
+  1 (1.00%) low mild
+  3 (3.00%) high mild
+  9 (9.00%) high severe
+
+decode/1048576          time:   [113.73 µs 115.00 µs 116.52 µs]
+                        thrpt:  [8.3812 GiB/s 8.4921 GiB/s 8.5867 GiB/s]
+                 change:
+                        time:   [+0.7656% +2.2177% +3.8938%] (p = 0.00 < 0.05)
+                        thrpt:  [-3.7479% -2.1696% -0.7598%]
+                        Change within noise threshold.
+Found 14 outliers among 100 measurements (14.00%)
+
+  1 (1.00%) low mild
+  4 (4.00%) high mild
+  9 (9.00%) high severe
+
+decode/5242880          time:   [603.94 µs 610.15 µs 617.51 µs]
+                        thrpt:  [7.9072 GiB/s 8.0027 GiB/s 8.0850 GiB/s]
+                 change:
+                        time:   [-0.8367% +1.1746% +3.1325%] (p = 0.26 > 0.05)
+                        thrpt:  [-3.0374% -1.1610% +0.8437%]
+                        No change in performance detected.
+Found 12 outliers among 100 measurements (12.00%)
+  3 (3.00%) high mild
+  9 (9.00%) high severe
+
+decode/10485760         time:   [1.2049 ms 1.2114 ms 1.2187 ms]
+                        thrpt:  [8.0130 GiB/s 8.0614 GiB/s 8.1053 GiB/s]
+                 change:
+                        time:   [+0.4271% +1.2029% +2.0284%] (p = 0.00 < 0.05)
+                        thrpt:  [-1.9881% -1.1886% -0.4253%]
+                        Change within noise threshold.
+Found 16 outliers among 100 measurements (16.00%)
+  5 (5.00%) high mild
+  11 (11.00%) high severe
+
+decode/20971520         time:   [2.2643 ms 2.2847 ms 2.3098 ms]
+                        thrpt:  [8.4557 GiB/s 8.5488 GiB/s 8.6258 GiB/s]
+                 change:
+                        time:   [+0.4473% +1.4790% +2.5370%] (p = 0.00 < 0.05)
+                        thrpt:  [-2.4742% -1.4575% -0.4453%]
+                        Change within noise threshold.
+Found 12 outliers among 100 measurements (12.00%)
+  2 (2.00%) high mild
   10 (10.00%) high severe
 
-decode/20971520         time:   [2.2433 ms 2.2533 ms 2.2644 ms]
-                        thrpt:  [8.6255 GiB/s 8.6680 GiB/s 8.7066 GiB/s]
-                 change:
-+                        time:   [-52.758% -52.317% -51.922%] (p = 0.00 < 0.05)
-+                        thrpt:  [+108.00% +109.72% +111.67%]
-+                        Performance has improved.
-Found 16 outliers among 100 measurements (16.00%)
-  3 (3.00%) high mild
-  13 (13.00%) high severe
+
+
 ```
 

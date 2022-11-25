@@ -1,4 +1,5 @@
 use crate::common::*;
+use crate::decode::DecodeError;
 use mimalloc::MiMalloc;
 
 mod common;
@@ -25,7 +26,7 @@ pub fn encode(input: &[u8]) -> String {
     unsafe { String::from_utf8_unchecked(buffer) }
 }
 
-pub fn decode(encoded: &str) -> Vec<u8> {
+pub fn decode(encoded: &str) -> Result<Vec<u8>, DecodeError> {
     let input = encoded.as_bytes();
     let mut buffer = vec![0; ((input.len() + 3) / 4) * 3];
 
@@ -33,12 +34,12 @@ pub fn decode(encoded: &str) -> Vec<u8> {
     let in_limit = total_chunks * DEC_CHUNK_SIZE * 4;
     let out_limit = total_chunks * DEC_CHUNK_SIZE * 3;
 
-    decode::decode_u64_chunks(&input[..in_limit], &mut buffer);
+    decode::decode_u64_chunks(&input[..in_limit], &mut buffer)?;
 
-    let bytes_rem = decode::decode_u64_remainder(&input[in_limit..], &mut buffer[out_limit..]);
+    let bytes_rem = decode::decode_u64_remainder(&input[in_limit..], &mut buffer[out_limit..])?;
 
     buffer.truncate(out_limit + bytes_rem);
-    buffer
+    Ok(buffer)
 }
 
 #[cfg(test)]
@@ -62,31 +63,43 @@ mod tests {
 
     #[test]
     fn should_decode_following_base64_spec() {
-        assert_eq!(decode("SGVsbG8h"), b"Hello!");
-        assert_eq!(decode("MDEyMzQ1Njc4OQ=="), b"0123456789");
+        assert_eq!(decode("SGVsbG8h").unwrap(), b"Hello!");
+        assert_eq!(decode("MDEyMzQ1Njc4OQ==").unwrap(), b"0123456789");
         assert_eq!(
-            decode("aHR0cHM6Ly9mb28uYmFyL3E/YT0yJmI9MyNmcg=="),
+            decode("aHR0cHM6Ly9mb28uYmFyL3E/YT0yJmI9MyNmcg==").unwrap(),
             b"https://foo.bar/q?a=2&b=3#fr"
         );
-        assert_eq!(decode("ICA="), b"  ");
-        assert_eq!(decode(""), b"");
-        assert_eq!(decode("AAAAAA=="), 0u32.to_ne_bytes())
+        assert_eq!(decode("ICA=").unwrap(), b"  ");
+        assert_eq!(decode("").unwrap(), b"");
+        assert_eq!(decode("AAAAAA==").unwrap(), 0u32.to_ne_bytes())
     }
 
     #[test]
     fn should_preserve_original_input() {
         for size in 0..512 {
             let bytes = random_bytes(size);
-            assert_eq!(decode(&encode(&bytes)), bytes);
+            assert_eq!(decode(&encode(&bytes)).unwrap(), bytes);
         }
         let large = random_bytes(3 * 1024 * 1024);
-        assert_eq!(decode(&encode(&large)), large);
+        assert_eq!(decode(&encode(&large)).unwrap(), large);
     }
 
     #[test]
-    #[should_panic(expected = "Unable to decode non-base64 character '^'")]
-    fn should_panic_when_decode_non_base64_input() {
-        decode("AAA^AAA==");
+    fn should_error_when_decode_non_base64_input() {
+        assert_eq!(
+            decode("AAA^AAA==").unwrap_err(),
+            DecodeError::InvalidByte(b'^')
+        );
+        assert_eq!(decode("!").unwrap_err(), DecodeError::InvalidByte(b'!'));
+        assert_eq!(
+            decode("\nNjc4OQ==").unwrap_err(),
+            DecodeError::InvalidByte(b'\n')
+        );
+
+        assert_eq!(
+            "Invalid non-base64 byte '#'",
+            format!("{}", DecodeError::InvalidByte(b'#'))
+        );
     }
 
     fn random_bytes(size: usize) -> Vec<u8> {

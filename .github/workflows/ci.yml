@@ -130,7 +130,7 @@ jobs:
       - name: Setup nodejs
         uses: actions/setup-node@v3
       - name: Generate report markdown
-        run: (echo '# Profiling Report' && echo '```diff' && cat results.txt && echo '```') | ./bin/diff.js > report.md
+        run: (echo '# Profiling Report' && echo '```diff' && cat results.txt && echo '```') | ./scripts/diff.js > report.md
       - name: Display report
         uses: mshick/add-pr-comment@v2
         with:

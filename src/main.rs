@@ -1,6 +1,8 @@
 use clap::Parser;
+use std::error::Error;
 use std::fs::{File, OpenOptions};
 use std::io::{stdin, stdout, BufRead, BufReader, BufWriter, Write};
+use std::process::exit;
 
 const BUFFER_SIZE: usize = 10 * 48 * 1024;
 
@@ -26,22 +28,29 @@ struct Args {
 }
 
 fn main() {
-    let args: Args = Args::parse();
-    let mut reader = get_reader(&args.input.or(args.argument));
-    let mut writer = get_writer(&args.output);
+    let args = Args::parse();
+    let result = process_args(args);
+
+    if let Err(error) = result {
+        eprintln!("Error: {}", error);
+        exit(1);
+    }
+}
+
+fn process_args(args: Args) -> Result<(), Box<dyn Error>> {
+    let mut reader = get_reader(&args.input.or(args.argument))?;
+    let mut writer = get_writer(&args.output)?;
 
     loop {
         let bytes_read = {
-            let buffer = reader.fill_buf().expect("Unable to read input");
+            let buffer = reader.fill_buf()?;
 
             if args.decode {
-                let in_utf8 = std::str::from_utf8(buffer).expect("Invalid UTF8");
-                writer.write(&rbase64::decode(in_utf8))
+                let in_utf8 = std::str::from_utf8(buffer)?;
+                writer.write(&rbase64::decode(in_utf8)?)
             } else {
                 writer.write(rbase64::encode(buffer).as_bytes())
-            }
-            .expect("Unable to write");
-
+            }?;
             buffer.len()
         };
 
@@ -51,10 +60,11 @@ fn main() {
 
         reader.consume(bytes_read);
     }
+    Ok(())
 }
 
-fn get_writer(output: &Option<String>) -> Box<dyn Write> {
-    match output {
+fn get_writer(output: &Option<String>) -> Result<Box<dyn Write>, std::io::Error> {
+    let writer: Box<dyn Write> = match output {
         Some(path) => {
             let file = OpenOptions::new()
                 .create(true)
@@ -66,16 +76,18 @@ fn get_writer(output: &Option<String>) -> Box<dyn Write> {
             Box::new(BufWriter::with_capacity(BUFFER_SIZE, file))
         }
         None => Box::new(BufWriter::with_capacity(BUFFER_SIZE, stdout().lock())),
-    }
+    };
+    Ok(writer)
 }
 
-fn get_reader(file: &Option<String>) -> Box<dyn BufRead> {
-    match file {
+fn get_reader(file: &Option<String>) -> Result<Box<dyn BufRead>, std::io::Error> {
+    let reader: Box<dyn BufRead> = match file {
         Some(path) => {
-            let file = File::open(path).expect("Unable to load file");
+            let file = File::open(path)?;
 
             Box::new(BufReader::with_capacity(BUFFER_SIZE, file))
         }
         None => Box::new(BufReader::with_capacity(BUFFER_SIZE, stdin().lock())),
-    }
+    };
+    Ok(reader)
 }

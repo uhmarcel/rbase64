@@ -1,5 +1,5 @@
 # rbase64
-A simple base64 encoder / decoder CLI tool made in Rust
+A fast multi-threaded base64 encoding library and CLI tool
 
 [![Crates.io](https://img.shields.io/crates/v/rbase64?style=flat-square)](https://crates.io/crates/rbase64)
 [![Crates.io](https://img.shields.io/crates/d/rbase64?style=flat-square)](https://crates.io/crates/rbase64)

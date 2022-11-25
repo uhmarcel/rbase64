@@ -17,7 +17,7 @@ pub fn encode(input: &[u8]) -> String {
 
     buffer.truncate(ENC_CHUNK_SIZE * total_chunks * 4 + bytes_rem);
 
-    // Buffer is built from UTF8 chars only. Safe to use and improves performance.
+    // Buffer built from UTF8 chars only. Safe to use and improves performance.
     unsafe { String::from_utf8_unchecked(buffer) }
 }
 

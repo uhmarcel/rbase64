@@ -80,8 +80,8 @@ fn encode_u64(input: &[u8], buffer: &mut [u8]) {
 
 #[inline(always)]
 fn read_u64_partial(bytes: &[u8]) -> u64 {
-    let mut buffer = [0u8; 8];
     let size = min(bytes.len(), 8);
+    let mut buffer = [0u8; 8];
 
     buffer[8 - size..].copy_from_slice(&bytes[..size]);
 

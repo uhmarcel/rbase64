@@ -717,7 +717,7 @@ dependencies = [
 
 [[package]]
 name = "rbase64"
-version = "1.4.2"
+version = "1.4.3"
 dependencies = [
  "assert_cmd",
  "chrono",

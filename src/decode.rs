@@ -68,7 +68,7 @@ fn decode_u64(input: &[u8], buffer: &mut [u8]) {
     let offset = (DEC_CHUNK_SIZE * 4 - 1) * 6;
 
     input.iter().enumerate().for_each(|(i, in_byte)| {
-        in_u64 |= (decode_byte(*in_byte) as u64) << (2 + offset - (6 * i)) as u64;
+        in_u64 |= (decode_byte(*in_byte) as u64) << (offset - (6 * i) + 2) as u64;
     });
 
     buffer.iter_mut().enumerate().for_each(|(i, out_byte)| {

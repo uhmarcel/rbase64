@@ -1,7 +1,8 @@
 use clap::Parser;
-use std::fs;
-use std::io;
-use std::io::Read;
+use std::fs::{File, OpenOptions};
+use std::io::{stdin, stdout, BufRead, BufReader, BufWriter, Write};
+
+const BUFFER_SIZE: usize = 10 * 48 * 1024;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -26,49 +27,55 @@ struct Args {
 
 fn main() {
     let args: Args = Args::parse();
-    let input = parse_input(args.input.or(args.argument));
+    let mut reader = get_reader(&args.input.or(args.argument));
+    let mut writer = get_writer(&args.output);
 
-    if args.decode {
-        let in_utf8 = String::from_utf8(input).expect("Invalid UTF8");
-        let out_bytes = rbase64::decode(&in_utf8);
+    loop {
+        let bytes_read = {
+            let buffer = reader.fill_buf().expect("Unable to read input");
 
-        output_bytes(args.output, &out_bytes);
-    } else {
-        let out_utf8 = rbase64::encode(&input);
+            if args.decode {
+                let in_utf8 = std::str::from_utf8(buffer).expect("Invalid UTF8");
+                writer.write(&rbase64::decode(in_utf8))
+            } else {
+                writer.write(rbase64::encode(buffer).as_bytes())
+            }
+            .expect("Unable to write");
 
-        output_str(args.output, &out_utf8);
-    }
-}
+            buffer.len()
+        };
 
-#[inline(always)]
-fn output_bytes(output: Option<String>, bytes: &[u8]) {
-    match output {
-        Some(path) => fs::write(path, bytes).expect("Failed to write output"),
-        None => {
-            print!("{}", String::from_utf8_lossy(bytes));
+        if bytes_read == 0 {
+            break;
         }
+
+        reader.consume(bytes_read);
     }
 }
 
-#[inline(always)]
-fn output_str(output: Option<String>, value: &str) {
+fn get_writer(output: &Option<String>) -> Box<dyn Write> {
     match output {
-        Some(path) => fs::write(path, value).expect("Failed to write output"),
-        None => {
-            print!("{}", value);
+        Some(path) => {
+            let file = OpenOptions::new()
+                .create(true)
+                .write(true)
+                .truncate(true)
+                .open(path)
+                .expect("Failed to write output");
+
+            Box::new(BufWriter::with_capacity(BUFFER_SIZE, file))
         }
+        None => Box::new(BufWriter::with_capacity(BUFFER_SIZE, stdout().lock())),
     }
 }
 
-fn parse_input(file: Option<String>) -> Vec<u8> {
+fn get_reader(file: &Option<String>) -> Box<dyn BufRead> {
     match file {
-        Some(path) => fs::read(path).expect("Unable to load file"),
-        None => {
-            let mut buffer: Vec<u8> = Vec::new();
-            io::stdin()
-                .read_to_end(&mut buffer)
-                .expect("Failed to read stdin");
-            buffer
+        Some(path) => {
+            let file = File::open(path).expect("Unable to load file");
+
+            Box::new(BufReader::with_capacity(BUFFER_SIZE, file))
         }
+        None => Box::new(BufReader::with_capacity(BUFFER_SIZE, stdin().lock())),
     }
 }

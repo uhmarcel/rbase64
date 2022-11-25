@@ -1,8 +1,12 @@
 use crate::common::*;
+use mimalloc::MiMalloc;
 
 mod common;
 mod decode;
 mod encode;
+
+#[global_allocator]
+static GLOBAL: MiMalloc = MiMalloc;
 
 pub fn encode(input: &[u8]) -> String {
     let mut buffer = vec![0; ((input.len() / 3) + 1) * 4];

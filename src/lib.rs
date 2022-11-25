@@ -13,9 +13,9 @@ pub fn encode(input: &[u8]) -> String {
     let mut buffer = vec![0; ((input.len() / 3) + 1) * 4];
     let total_chunks = input.len() / (ENC_CHUNK_SIZE * 3);
 
-    encode::encode_u64_chunks(input, &mut buffer);
+    encode::encode_u128_chunks(input, &mut buffer);
 
-    let bytes_rem = encode::encode_u64_remainder(
+    let bytes_rem = encode::encode_u128_remainder(
         &input[ENC_CHUNK_SIZE * total_chunks * 3..],
         &mut buffer[ENC_CHUNK_SIZE * total_chunks * 4..],
     );

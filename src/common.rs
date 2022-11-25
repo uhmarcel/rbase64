@@ -2,10 +2,10 @@ pub const ENCODE_MAP: &[u8; 64] =
     b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 pub const DECODE_MAP: &[u8; 256] = &construct_decode_map();
 
-pub const ENC_CHUNK_SIZE: usize = 2;
+pub const ENC_CHUNK_SIZE: usize = 5;
 pub const DEC_CHUNK_SIZE: usize = 2;
 
-pub const SIX_BIT_MASK: u64 = 0x3f;
+pub const SIX_BIT_MASK: u128 = 0x3f;
 pub const BYTE_MASK: u64 = 0xff;
 pub const INVALID_BYTE: u8 = 0x40;
 

@@ -198,3 +198,6 @@ $ time (cat random-10gb.b64 | pv -a > /dev/null)
 [2.31GiB/s]
 ( cat random-10gb.b64 | pv -a > /dev/null; )  0.88s user 4.72s system 95% cpu 5.858 total
 ```
+
+# License
+This project is dual-licensed under MIT and Apache 2.0.

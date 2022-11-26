@@ -77,40 +77,40 @@ Hello world
 ## Library
 Performance is measured using benchmarks with Criterion. Each bench measures encoding/decoding
 speed and throughput at varying input sizes in bytes. Measurements below were taken by running
-benchmarks on a MacBook Air M1 2020 laptop. Results are compared against three of the top most
-widely used Rust base64 encoding libraries in [cargo.io](https://crates.io/search?q=base64&sort=downloads).
+benchmarks on a MacBook Air M1 2020 laptop. Results are compared against some of the top base64 
+encoding libraries in [cargo.io](https://crates.io/search?q=base64&sort=downloads).
 
 ### Encoding
-| Bench (type / bytes) | *rbase64 (v2.0.2)* | [base64 (v0.20.0)](https://github.com/marshallpierce/rust-base64) | [data-encoding (v2.3.2)](https://github.com/ia0/data-encoding) | [rustc-serialize (v0.3.24)](https://github.com/rust-lang/rustc-serialize) |
-|-----------------|--------------|--------------|--------------|--------------|
-| encode/3        | 188.87 MiB/s | 77.240 MiB/s | 77.208 MiB/s | 91.615 MiB/s |
-| encode/50       | 1.3597 GiB/s | 904.74 MiB/s | 882.87 MiB/s | 806.29 MiB/s |
-| encode/100      | 1.7865 GiB/s | 1.2844 GiB/s | 1.3009 GiB/s | 1.0334 GiB/s |
-| encode/500      | 2.6030 GiB/s | 1.8897 GiB/s | 1.9288 GiB/s | 1.2626 GiB/s |
-| encode/3072     | 2.7916 GiB/s | 2.3780 GiB/s | 2.4211 GiB/s | 1.4501 GiB/s |
-| encode/51200    | 2.8368 GiB/s | 2.4486 GiB/s | 2.4678 GiB/s | 1.4765 GiB/s |
-| encode/102400   | 2.8062 GiB/s | 2.4247 GiB/s | 2.4756 GiB/s | 1.4799 GiB/s |
-| encode/512000   | 5.0433 GiB/s | 2.5105 GiB/s | 2.5174 GiB/s | 1.4623 GiB/s |
-| encode/1048576  | 7.3092 GiB/s | 2.5115 GiB/s | 2.5182 GiB/s | 1.4506 GiB/s |
-| encode/5242880  | 9.6995 GiB/s | 2.1806 GiB/s | 2.2009 GiB/s | 1.3416 GiB/s |
-| encode/10485760 | 11.019 GiB/s | 2.0549 GiB/s | 2.1037 GiB/s | 1.3438 GiB/s |
-| encode/20971520 | 10.702 GiB/s | 2.0814 GiB/s | 2.0638 GiB/s | 1.3138 GiB/s |
+| Bench (type / bytes) | *rbase64 (v2.0.2)* | [base64 (v0.20.0)](https://github.com/marshallpierce/rust-base64) | [data-encoding (v2.3.2)](https://github.com/ia0/data-encoding) | [rustc-serialize (v0.3.24)](https://github.com/rust-lang/rustc-serialize) | [base64-simd (v0.7.0)](https://github.com/Nugine/simd/tree/main/crates/base64-simd) |
+|-----------------|--------------|--------------|--------------|--------------|--------------|
+| encode/3        | 188.87 MiB/s | 77.240 MiB/s | 77.208 MiB/s | 91.615 MiB/s | 357.45 MiB/s |
+| encode/50       | 1.3597 GiB/s | 904.74 MiB/s | 882.87 MiB/s | 806.29 MiB/s | 1.6693 GiB/s |
+| encode/100      | 1.7865 GiB/s | 1.2844 GiB/s | 1.3009 GiB/s | 1.0334 GiB/s | 2.3903 GiB/s |
+| encode/500      | 2.6030 GiB/s | 1.8897 GiB/s | 1.9288 GiB/s | 1.2626 GiB/s | 2.8986 GiB/s |
+| encode/3072     | 2.7916 GiB/s | 2.3780 GiB/s | 2.4211 GiB/s | 1.4501 GiB/s | 3.1044 GiB/s |
+| encode/51200    | 2.8368 GiB/s | 2.4486 GiB/s | 2.4678 GiB/s | 1.4765 GiB/s | 3.1257 GiB/s |
+| encode/102400   | 2.8062 GiB/s | 2.4247 GiB/s | 2.4756 GiB/s | 1.4799 GiB/s | 3.0012 GiB/s |
+| encode/512000   | 5.0433 GiB/s | 2.5105 GiB/s | 2.5174 GiB/s | 1.4623 GiB/s | 3.0210 GiB/s |
+| encode/1048576  | 7.3092 GiB/s | 2.5115 GiB/s | 2.5182 GiB/s | 1.4506 GiB/s | 3.0005 GiB/s |
+| encode/5242880  | 9.6995 GiB/s | 2.1806 GiB/s | 2.2009 GiB/s | 1.3416 GiB/s | 2.9529 GiB/s |
+| encode/10485760 | 11.019 GiB/s | 2.0549 GiB/s | 2.1037 GiB/s | 1.3438 GiB/s | 2.9763 GiB/s |
+| encode/20971520 | 10.702 GiB/s | 2.0814 GiB/s | 2.0638 GiB/s | 1.3138 GiB/s | 2.9818 GiB/s |
 
 ### Decoding
-| Bench (type / bytes) | *rbase64 (v2.0.2)* | [base64 (v0.20.0)](https://github.com/marshallpierce/rust-base64) | [data-encoding (v2.3.2)](https://github.com/ia0/data-encoding) | [rustc-serialize (v0.3.24)](https://github.com/rust-lang/rustc-serialize) |
-|-----------------|--------------|--------------|--------------|--------------|
-| decode/3        | 235.55 MiB/s | 52.127 MiB/s | 55.164 MiB/s | 96.523 MiB/s |
-| decode/50       | 1.7775 GiB/s | 540.87 MiB/s | 728.58 MiB/s | 550.51 MiB/s |
-| decode/100      | 2.3152 GiB/s | 942.93 MiB/s | 1.1012 GiB/s | 579.12 MiB/s |
-| decode/500      | 2.8945 GiB/s | 1.8286 GiB/s | 1.7942 GiB/s | 563.76 MiB/s |
-| decode/3072     | 3.0656 GiB/s | 2.9708 GiB/s | 2.2418 GiB/s | 609.78 MiB/s |
-| decode/51200    | 3.1528 GiB/s | 3.0924 GiB/s | 2.3634 GiB/s | 618.20 MiB/s |
-| decode/102400   | 3.1314 GiB/s | 3.0878 GiB/s | 2.4015 GiB/s | 618.18 MiB/s |
-| decode/512000   | 6.4574 GiB/s | 3.1235 GiB/s | 2.4229 GiB/s | 618.47 MiB/s |
-| decode/1048576  | 8.6202 GiB/s | 3.1195 GiB/s | 2.4073 GiB/s | 617.00 MiB/s |
-| decode/5242880  | 10.410 GiB/s | 2.8267 GiB/s | 2.2475 GiB/s | 600.88 MiB/s |
-| decode/10485760 | 11.257 GiB/s | 2.7416 GiB/s | 2.2384 GiB/s | 599.09 MiB/s |
-| decode/20971520 | 11.979 GiB/s | 2.6512 GiB/s | 2.1692 GiB/s | 596.77 MiB/s |
+| Bench (type / bytes) | *rbase64 (v2.0.2)* | [base64 (v0.20.0)](https://github.com/marshallpierce/rust-base64) | [data-encoding (v2.3.2)](https://github.com/ia0/data-encoding) | [rustc-serialize (v0.3.24)](https://github.com/rust-lang/rustc-serialize) | [base64-simd (v0.7.0)](https://github.com/Nugine/simd/tree/main/crates/base64-simd) |
+|-----------------|--------------|--------------|--------------|--------------|--------------|
+| decode/3        | 235.55 MiB/s | 52.127 MiB/s | 55.164 MiB/s | 96.523 MiB/s | 308.45 MiB/s |
+| decode/50       | 1.7775 GiB/s | 540.87 MiB/s | 728.58 MiB/s | 550.51 MiB/s | 2.1791 GiB/s |
+| decode/100      | 2.3152 GiB/s | 942.93 MiB/s | 1.1012 GiB/s | 579.12 MiB/s | 2.8483 GiB/s |
+| decode/500      | 2.8945 GiB/s | 1.8286 GiB/s | 1.7942 GiB/s | 563.76 MiB/s | 3.4155 GiB/s |
+| decode/3072     | 3.0656 GiB/s | 2.9708 GiB/s | 2.2418 GiB/s | 609.78 MiB/s | 3.6498 GiB/s |
+| decode/51200    | 3.1528 GiB/s | 3.0924 GiB/s | 2.3634 GiB/s | 618.20 MiB/s | 3.7184 GiB/s |
+| decode/102400   | 3.1314 GiB/s | 3.0878 GiB/s | 2.4015 GiB/s | 618.18 MiB/s | 3.6789 GiB/s |
+| decode/512000   | 6.4574 GiB/s | 3.1235 GiB/s | 2.4229 GiB/s | 618.47 MiB/s | 3.7311 GiB/s |
+| decode/1048576  | 8.6202 GiB/s | 3.1195 GiB/s | 2.4073 GiB/s | 617.00 MiB/s | 3.7166 GiB/s |
+| decode/5242880  | 10.410 GiB/s | 2.8267 GiB/s | 2.2475 GiB/s | 600.88 MiB/s | 3.6338 GiB/s |
+| decode/10485760 | 11.257 GiB/s | 2.7416 GiB/s | 2.2384 GiB/s | 599.09 MiB/s | 3.6330 GiB/s |
+| decode/20971520 | 11.979 GiB/s | 2.6512 GiB/s | 2.1692 GiB/s | 596.77 MiB/s | 3.6614 GiB/s |
 
 ## CLI
 Manual benchmarks using randomized binary files. Compared against classic

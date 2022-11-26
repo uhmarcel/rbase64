@@ -4,7 +4,7 @@ use std::iter::zip;
 
 #[inline(always)]
 #[cfg(not(feature = "parallel"))]
-pub(crate) fn encode_u64_chunks(input: &[u8], buffer: &mut [u8]) {
+pub(crate) fn encode_u128_chunks(input: &[u8], buffer: &mut [u8]) {
     encode_u128_chunks_sync(input, buffer);
 }
 
@@ -46,18 +46,18 @@ fn encode_u128_chunks_parallel(input: &[u8], buffer: &mut [u8]) {
 
 #[inline(always)]
 pub(crate) fn encode_u128_remainder(input: &[u8], buffer: &mut [u8]) -> usize {
-    let in_u64 = read_u128_partial(input);
+    let in_u128 = read_u128_partial(input);
     let mut in_bits = 8 * input.len();
     let mut out_index = 0;
 
     while in_bits >= 6 {
         in_bits -= 6;
-        buffer[out_index] = encode_byte(((in_u64 >> in_bits) & SIX_BIT_MASK) as u8);
+        buffer[out_index] = encode_byte(((in_u128 >> in_bits) & SIX_BIT_MASK) as u8);
         out_index += 1;
     }
 
     if in_bits > 0 {
-        buffer[out_index] = encode_byte(((in_u64 << (6 - in_bits)) & SIX_BIT_MASK) as u8);
+        buffer[out_index] = encode_byte(((in_u128 << (6 - in_bits)) & SIX_BIT_MASK) as u8);
         out_index += 1;
     }
 
@@ -70,11 +70,11 @@ pub(crate) fn encode_u128_remainder(input: &[u8], buffer: &mut [u8]) -> usize {
 
 #[inline(always)]
 fn encode_u128(input: &[u8], buffer: &mut [u8]) {
-    let in_u64 = read_u128_partial(input);
+    let in_u128 = read_u128_partial(input);
     let offset = (ENC_CHUNK_SIZE * 3 - 1) * 8;
 
     buffer.iter_mut().enumerate().for_each(|(i, out_b)| {
-        *out_b = encode_byte(((in_u64 >> (2 + offset - (i * 6))) & SIX_BIT_MASK) as u8);
+        *out_b = encode_byte(((in_u128 >> (2 + offset - (i * 6))) & SIX_BIT_MASK) as u8);
     });
 }
 

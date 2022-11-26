@@ -16,8 +16,8 @@ rbase64 is up to the task.
 
 
 The goal of rbase64 is to provide a fast implementation of base64 encoding. The library is thoroughly tested and optimized
-for high throughput. As of v2.0.1, Rbase64 is able to achieve up to 10.702 GiB/s encoding and 11.979 GiB/s decoding rates (measured
-in MacBook Air M1 2020 laptop, 20 MiB batches).
+for high throughput. As of v2.0.2, rbase64 is able to achieve up to 11.019 GiB/s encoding and 11.979 GiB/s decoding rates (measured
+in MacBook Air M1 2020 laptop, 10~20 MiB batches).
 
 The project also comes with a command line interface powered by the library encoder. While limited by I/O,
 it still achieves high performance compared to other alternatives (for example, GNU base64 by a factor of 11x).
@@ -29,7 +29,7 @@ For details, see [Performance](#performance).
 Add rbase64 to your Cargo.toml dependencies:
 ```toml
 [dependencies]
-rbase64 = "2.0.1"
+rbase64 = "2.0.2"
 ```
 
 **Sample usage:**
@@ -81,7 +81,7 @@ benchmarks on a MacBook Air M1 2020 laptop. Results are compared against three o
 widely used Rust base64 encoding libraries in [cargo.io](https://crates.io/search?q=base64&sort=downloads).
 
 ### Encoding
-| Bench (type / bytes) | *rbase64 (v2.0.1)* | [base64 (v0.20.0)](https://github.com/marshallpierce/rust-base64) | [data-encoding (v2.3.2)](https://github.com/ia0/data-encoding) | [rustc-serialize (v0.3.24)](https://github.com/rust-lang/rustc-serialize) |
+| Bench (type / bytes) | *rbase64 (v2.0.2)* | [base64 (v0.20.0)](https://github.com/marshallpierce/rust-base64) | [data-encoding (v2.3.2)](https://github.com/ia0/data-encoding) | [rustc-serialize (v0.3.24)](https://github.com/rust-lang/rustc-serialize) |
 |-----------------|--------------|--------------|--------------|--------------|
 | encode/3        | 188.87 MiB/s | 77.240 MiB/s | 77.208 MiB/s | 91.615 MiB/s |
 | encode/50       | 1.3597 GiB/s | 904.74 MiB/s | 882.87 MiB/s | 806.29 MiB/s |
@@ -97,7 +97,7 @@ widely used Rust base64 encoding libraries in [cargo.io](https://crates.io/searc
 | encode/20971520 | 10.702 GiB/s | 2.0814 GiB/s | 2.0638 GiB/s | 1.3138 GiB/s |
 
 ### Decoding
-| Bench (type / bytes) | *rbase64 (v2.0.1)* | [base64 (v0.20.0)](https://github.com/marshallpierce/rust-base64) | [data-encoding (v2.3.2)](https://github.com/ia0/data-encoding) | [rustc-serialize (v0.3.24)](https://github.com/rust-lang/rustc-serialize) |
+| Bench (type / bytes) | *rbase64 (v2.0.2)* | [base64 (v0.20.0)](https://github.com/marshallpierce/rust-base64) | [data-encoding (v2.3.2)](https://github.com/ia0/data-encoding) | [rustc-serialize (v0.3.24)](https://github.com/rust-lang/rustc-serialize) |
 |-----------------|--------------|--------------|--------------|--------------|
 | decode/3        | 235.55 MiB/s | 52.127 MiB/s | 55.164 MiB/s | 96.523 MiB/s |
 | decode/50       | 1.7775 GiB/s | 540.87 MiB/s | 728.58 MiB/s | 550.51 MiB/s |

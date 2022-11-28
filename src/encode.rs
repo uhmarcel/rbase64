@@ -1,6 +1,5 @@
 use crate::common::*;
 use std::cmp::min;
-use std::iter::zip;
 
 #[inline(always)]
 #[cfg(not(feature = "parallel"))]
@@ -23,7 +22,7 @@ fn encode_u128_chunks_sync(input: &[u8], buffer: &mut [u8]) {
     let in_chunks = input.chunks_exact(ENC_CHUNK_SIZE * 3);
     let out_chunks = buffer.chunks_exact_mut(ENC_CHUNK_SIZE * 4);
 
-    zip(in_chunks, out_chunks).for_each(|(in_chunk, out_chunk)| {
+    in_chunks.zip(out_chunks).for_each(|(in_chunk, out_chunk)| {
         encode_u128(in_chunk, out_chunk);
     });
 }

@@ -16,7 +16,7 @@ rbase64 is up to the task.
 
 
 The goal of rbase64 is to provide a fast implementation of base64 encoding. The library is thoroughly tested and optimized
-for high throughput. As of v2.0.2, rbase64 is able to achieve up to 11.019 GiB/s encoding and 11.979 GiB/s decoding rates (measured
+for high throughput. As of v2.0.3, rbase64 is able to achieve up to 11.133 GiB/s encoding and 14.251 GiB/s decoding rates (measured
 in MacBook Air M1 2020 laptop, 10~20 MiB batches).
 
 The project also comes with a command line interface powered by the library encoder. While limited by I/O,
@@ -29,7 +29,7 @@ For details, see [Performance](#performance).
 Add rbase64 to your Cargo.toml dependencies:
 ```toml
 [dependencies]
-rbase64 = "2.0.2"
+rbase64 = "2.0.3"
 ```
 
 **Sample usage:**
@@ -81,36 +81,36 @@ benchmarks on a MacBook Air M1 2020 laptop. Results are compared against three o
 widely used Rust base64 encoding libraries in [cargo.io](https://crates.io/search?q=base64&sort=downloads).
 
 ### Encoding
-| Bench (type / bytes) | *rbase64 (v2.0.2)* | [base64 (v0.20.0)](https://github.com/marshallpierce/rust-base64) | [data-encoding (v2.3.2)](https://github.com/ia0/data-encoding) | [rustc-serialize (v0.3.24)](https://github.com/rust-lang/rustc-serialize) |
+| Bench (type / bytes) | *rbase64 (v2.0.3)* | [base64 (v0.20.0)](https://github.com/marshallpierce/rust-base64) | [data-encoding (v2.3.2)](https://github.com/ia0/data-encoding) | [rustc-serialize (v0.3.24)](https://github.com/rust-lang/rustc-serialize) |
 |-----------------|--------------|--------------|--------------|--------------|
-| encode/3        | 188.87 MiB/s | 77.240 MiB/s | 77.208 MiB/s | 91.615 MiB/s |
-| encode/50       | 1.3597 GiB/s | 904.74 MiB/s | 882.87 MiB/s | 806.29 MiB/s |
-| encode/100      | 1.7865 GiB/s | 1.2844 GiB/s | 1.3009 GiB/s | 1.0334 GiB/s |
-| encode/500      | 2.6030 GiB/s | 1.8897 GiB/s | 1.9288 GiB/s | 1.2626 GiB/s |
-| encode/3072     | 2.7916 GiB/s | 2.3780 GiB/s | 2.4211 GiB/s | 1.4501 GiB/s |
-| encode/51200    | 2.8368 GiB/s | 2.4486 GiB/s | 2.4678 GiB/s | 1.4765 GiB/s |
-| encode/102400   | 2.8062 GiB/s | 2.4247 GiB/s | 2.4756 GiB/s | 1.4799 GiB/s |
-| encode/512000   | 5.0433 GiB/s | 2.5105 GiB/s | 2.5174 GiB/s | 1.4623 GiB/s |
-| encode/1048576  | 7.3092 GiB/s | 2.5115 GiB/s | 2.5182 GiB/s | 1.4506 GiB/s |
-| encode/5242880  | 9.6995 GiB/s | 2.1806 GiB/s | 2.2009 GiB/s | 1.3416 GiB/s |
-| encode/10485760 | 11.019 GiB/s | 2.0549 GiB/s | 2.1037 GiB/s | 1.3438 GiB/s |
-| encode/20971520 | 10.702 GiB/s | 2.0814 GiB/s | 2.0638 GiB/s | 1.3138 GiB/s |
+| encode/3        | 186.21 MiB/s | 77.240 MiB/s | 77.208 MiB/s | 91.615 MiB/s |
+| encode/50       | 1.3780 GiB/s | 904.74 MiB/s | 882.87 MiB/s | 806.29 MiB/s |
+| encode/100      | 1.7103 GiB/s | 1.2844 GiB/s | 1.3009 GiB/s | 1.0334 GiB/s |
+| encode/500      | 2.5775 GiB/s | 1.8897 GiB/s | 1.9288 GiB/s | 1.2626 GiB/s |
+| encode/3072     | 2.7913 GiB/s | 2.3780 GiB/s | 2.4211 GiB/s | 1.4501 GiB/s |
+| encode/51200    | 2.8454 GiB/s | 2.4486 GiB/s | 2.4678 GiB/s | 1.4765 GiB/s |
+| encode/102400   | 2.8644 GiB/s | 2.4247 GiB/s | 2.4756 GiB/s | 1.4799 GiB/s |
+| encode/512000   | 6.1009 GiB/s | 2.5105 GiB/s | 2.5174 GiB/s | 1.4623 GiB/s |
+| encode/1048576  | 8.0095 GiB/s | 2.5115 GiB/s | 2.5182 GiB/s | 1.4506 GiB/s |
+| encode/5242880  | 10.042 GiB/s | 2.1806 GiB/s | 2.2009 GiB/s | 1.3416 GiB/s |
+| encode/10485760 | 11.133 GiB/s | 2.0549 GiB/s | 2.1037 GiB/s | 1.3438 GiB/s |
+| encode/20971520 | 10.804 GiB/s | 2.0814 GiB/s | 2.0638 GiB/s | 1.3138 GiB/s |
 
 ### Decoding
-| Bench (type / bytes) | *rbase64 (v2.0.2)* | [base64 (v0.20.0)](https://github.com/marshallpierce/rust-base64) | [data-encoding (v2.3.2)](https://github.com/ia0/data-encoding) | [rustc-serialize (v0.3.24)](https://github.com/rust-lang/rustc-serialize) |
+| Bench (type / bytes) | *rbase64 (v2.0.3)* | [base64 (v0.20.0)](https://github.com/marshallpierce/rust-base64) | [data-encoding (v2.3.2)](https://github.com/ia0/data-encoding) | [rustc-serialize (v0.3.24)](https://github.com/rust-lang/rustc-serialize) |
 |-----------------|--------------|--------------|--------------|--------------|
-| decode/3        | 235.55 MiB/s | 52.127 MiB/s | 55.164 MiB/s | 96.523 MiB/s |
-| decode/50       | 1.7775 GiB/s | 540.87 MiB/s | 728.58 MiB/s | 550.51 MiB/s |
-| decode/100      | 2.3152 GiB/s | 942.93 MiB/s | 1.1012 GiB/s | 579.12 MiB/s |
-| decode/500      | 2.8945 GiB/s | 1.8286 GiB/s | 1.7942 GiB/s | 563.76 MiB/s |
-| decode/3072     | 3.0656 GiB/s | 2.9708 GiB/s | 2.2418 GiB/s | 609.78 MiB/s |
-| decode/51200    | 3.1528 GiB/s | 3.0924 GiB/s | 2.3634 GiB/s | 618.20 MiB/s |
-| decode/102400   | 3.1314 GiB/s | 3.0878 GiB/s | 2.4015 GiB/s | 618.18 MiB/s |
-| decode/512000   | 6.4574 GiB/s | 3.1235 GiB/s | 2.4229 GiB/s | 618.47 MiB/s |
-| decode/1048576  | 8.6202 GiB/s | 3.1195 GiB/s | 2.4073 GiB/s | 617.00 MiB/s |
-| decode/5242880  | 10.410 GiB/s | 2.8267 GiB/s | 2.2475 GiB/s | 600.88 MiB/s |
-| decode/10485760 | 11.257 GiB/s | 2.7416 GiB/s | 2.2384 GiB/s | 599.09 MiB/s |
-| decode/20971520 | 11.979 GiB/s | 2.6512 GiB/s | 2.1692 GiB/s | 596.77 MiB/s |
+| decode/3        | 235.57 MiB/s | 52.127 MiB/s | 55.164 MiB/s | 96.523 MiB/s |
+| decode/50       | 1.9261 GiB/s | 540.87 MiB/s | 728.58 MiB/s | 550.51 MiB/s |
+| decode/100      | 2.5807 GiB/s | 942.93 MiB/s | 1.1012 GiB/s | 579.12 MiB/s |
+| decode/500      | 3.3135 GiB/s | 1.8286 GiB/s | 1.7942 GiB/s | 563.76 MiB/s |
+| decode/3072     | 3.4941 GiB/s | 2.9708 GiB/s | 2.2418 GiB/s | 609.78 MiB/s |
+| decode/51200    | 3.7189 GiB/s | 3.0924 GiB/s | 2.3634 GiB/s | 618.20 MiB/s |
+| decode/102400   | 3.7623 GiB/s | 3.0878 GiB/s | 2.4015 GiB/s | 618.18 MiB/s |
+| decode/512000   | 7.0065 GiB/s | 3.1235 GiB/s | 2.4229 GiB/s | 618.47 MiB/s |
+| decode/1048576  | 9.3497 GiB/s | 3.1195 GiB/s | 2.4073 GiB/s | 617.00 MiB/s |
+| decode/5242880  | 12.148 GiB/s | 2.8267 GiB/s | 2.2475 GiB/s | 600.88 MiB/s |
+| decode/10485760 | 13.424 GiB/s | 2.7416 GiB/s | 2.2384 GiB/s | 599.09 MiB/s |
+| decode/20971520 | 14.251 GiB/s | 2.6512 GiB/s | 2.1692 GiB/s | 596.77 MiB/s |
 
 ## CLI
 Manual benchmarks using randomized binary files. Compared against classic

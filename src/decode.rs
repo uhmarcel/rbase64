@@ -80,16 +80,14 @@ pub(crate) fn decode_u64_remainder(input: &[u8], buffer: &mut [u8]) -> Result<us
 
 #[inline(always)]
 fn decode_u64(input: &[u8], buffer: &mut [u8]) -> Result<(), DecodeError> {
-    let mut in_u64 = 0u64;
-    let offset = (DEC_CHUNK_SIZE * 4 - 1) * 6;
+    let mut out_u64 = 0u64;
 
     for (i, in_byte) in input.iter().enumerate() {
-        in_u64 |= (decode_byte(*in_byte)? as u64) << (offset - (6 * i) + 2) as u64;
+        out_u64 |= (decode_byte(*in_byte)? as u64) << (64 - ((i + 1) * 6));
     }
 
-    for (i, out_byte) in buffer.iter_mut().enumerate() {
-        *out_byte = ((in_u64 >> (offset - (i * 8))) & BYTE_MASK) as u8;
-    }
+    let out_bytes: [u8; 8] = u64::to_be_bytes(out_u64);
+    buffer.copy_from_slice(&out_bytes[..6]);
     Ok(())
 }
 

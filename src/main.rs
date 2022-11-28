@@ -70,8 +70,7 @@ fn get_writer(output: &Option<String>) -> Result<Box<dyn Write>, std::io::Error>
                 .create(true)
                 .write(true)
                 .truncate(true)
-                .open(path)
-                .expect("Failed to write output");
+                .open(path)?;
 
             Box::new(BufWriter::with_capacity(BUFFER_SIZE, file))
         }

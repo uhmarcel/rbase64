@@ -1,6 +1,6 @@
 [package]
 name = "rbase64"
-version = "2.0.2"
+version = "2.0.3"
 edition = "2021"
 description = "A fast multi-threaded base64 encoding library and CLI tool"
 authors = ["Marcel Riera <marcel.riera@outlook.com>"]
@@ -30,6 +30,10 @@ parallel = ["rayon"]
 
 [[bin]]
 name = "rbase64"
+required-features = ["cli"]
+
+[[test]]
+name = "cli-tests"
 required-features = ["cli"]
 
 [[bench]]

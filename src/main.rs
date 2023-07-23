@@ -4,7 +4,7 @@ use std::fs::{File, OpenOptions};
 use std::io::{stdin, stdout, BufRead, BufReader, BufWriter, Write};
 use std::process::exit;
 
-const BUFFER_SIZE: usize = 10 * 48 * 1024;
+const BUFFER_SIZE: usize = 100 * 48 * 1024;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]

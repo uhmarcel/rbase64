@@ -62,6 +62,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+      - name: Cache dependencies
+        uses: Swatinem/rust-cache@v2.5.1
       - name: Set up toolchain
         uses: actions-rs/toolchain@v1
         with:
@@ -89,8 +91,6 @@ jobs:
           RUSTDOCFLAGS: "-Cinstrument-coverage"
       - name: Install grcov
         run: if [[ ! -e ~/.cargo/bin/grcov ]]; then cargo install grcov; fi
-      - name: Cache dependencies
-        uses: Swatinem/rust-cache@v2.5.1
       - name: Run grcov
         run: grcov . --binary-path target/debug/deps/ -s . -t lcov --branch --ignore-not-existing --ignore '../**' --ignore '/*' -o coverage.lcov
       - name: Cache dependencies

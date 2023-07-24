@@ -89,8 +89,12 @@ jobs:
           RUSTDOCFLAGS: "-Cinstrument-coverage"
       - name: Install grcov
         run: if [[ ! -e ~/.cargo/bin/grcov ]]; then cargo install grcov; fi
+      - name: Cache dependencies
+        uses: Swatinem/rust-cache@v2.5.1
       - name: Run grcov
         run: grcov . --binary-path target/debug/deps/ -s . -t lcov --branch --ignore-not-existing --ignore '../**' --ignore '/*' -o coverage.lcov
+      - name: Cache dependencies
+        uses: Swatinem/rust-cache@v2.5.1
 #      - name: Upload test results
 #        uses: EnricoMi/publish-unit-test-result-action@v1
 #        with:
@@ -101,7 +105,7 @@ jobs:
         uses: coverallsapp/github-action@master
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          path-to-lcov: lcov.info
+          path-to-lcov: coverage.lcov
 
   profiling:
     name: Profiling

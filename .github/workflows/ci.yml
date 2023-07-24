@@ -71,11 +71,7 @@ jobs:
           override: true
           components: llvm-tools-preview
       - name: Install grcov
-        uses: actions-rs/install@v0.1
-        with:
-          crate: grcov
-          version: latest
-          use-tool-cache: true
+        run: if [[ ! -e ~/.cargo/bin/grcov ]]; then cargo install grcov; fi
 #      - name: Build
 #        uses: actions-rs/cargo@v1
 #        with:
@@ -89,26 +85,27 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --all-features --no-fail-fast
+          args: --all-features --tests --no-fail-fast
         env:
           CARGO_INCREMENTAL: "0"
           RUSTFLAGS: "-Cinstrument-coverage"
           RUSTDOCFLAGS: "-Cinstrument-coverage"
 
       - name: Run grcov
-        run: grcov . --binary-path target/debug/deps/ -s . -t lcov --branch --ignore-not-existing --keep-only 'src/*' -o coverage.lcov
+        run: grcov . --binary-path target/debug/deps/ -s . -t lcov,cobertura --branch --keep-only 'src/*' -o .
 
-#      - name: Upload test results
-#        uses: EnricoMi/publish-unit-test-result-action@v1
-#        with:
-#          check_name: Test Results
-#          github_token: ${{ secrets.GITHUB_TOKEN }}
-#          files: results.xml
+      - name: Upload test results
+        uses: EnricoMi/publish-unit-test-result-action@v1
+        with:
+          check_name: Test Results
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          files: cobertura.xml
+
       - name: Upload test coverage
         uses: coverallsapp/github-action@master
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          path-to-lcov: coverage.lcov
+          path-to-lcov: lcov
 
   profiling:
     name: Profiling

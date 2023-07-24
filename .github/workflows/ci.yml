@@ -60,8 +60,7 @@ jobs:
     name: Test
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
       - name: Cache dependencies
         uses: Swatinem/rust-cache@v2.5.1
       - name: Set up toolchain
@@ -71,15 +70,21 @@ jobs:
           toolchain: stable
           override: true
           components: llvm-tools-preview
-      - name: Build
-        uses: actions-rs/cargo@v1
+      - name: Install grcov
+        uses: actions-rs/install@v0.1
         with:
-          command: build
-          args: --release
-        env:
-          CARGO_INCREMENTAL: "0"
-          RUSTFLAGS: "-Cinstrument-coverage"
-          RUSTDOCFLAGS: "-Cinstrument-coverage"
+          crate: grcov
+          version: latest
+          use-tool-cache: true
+#      - name: Build
+#        uses: actions-rs/cargo@v1
+#        with:
+#          command: build
+#          args: --release
+#        env:
+#          CARGO_INCREMENTAL: "0"
+#          RUSTFLAGS: "-Cinstrument-coverage"
+#          RUSTDOCFLAGS: "-Cinstrument-coverage"
       - name: Test
         uses: actions-rs/cargo@v1
         with:
@@ -89,12 +94,10 @@ jobs:
           CARGO_INCREMENTAL: "0"
           RUSTFLAGS: "-Cinstrument-coverage"
           RUSTDOCFLAGS: "-Cinstrument-coverage"
-      - name: Install grcov
-        run: if [[ ! -e ~/.cargo/bin/grcov ]]; then cargo install grcov; fi
+
       - name: Run grcov
-        run: grcov . --binary-path target/debug/deps/ -s . -t lcov --branch --ignore-not-existing --ignore '../**' --ignore '/*' -o coverage.lcov
-      - name: Cache dependencies
-        uses: Swatinem/rust-cache@v2.5.1
+        run: grcov . --binary-path target/debug/deps/ -s . -t lcov --branch --ignore-not-existing --keep-only 'src/*' -o coverage.lcov
+
 #      - name: Upload test results
 #        uses: EnricoMi/publish-unit-test-result-action@v1
 #        with:
